@@ -27,6 +27,19 @@ python ../scripts/export_openapi.py          # 导出契约
 python ../scripts/export_openapi.py --check  # 校验契约是否最新
 ```
 
+## 接口（已实现）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/items` | 列表：过滤 `type/tag_id/status/q/created_from/created_to`，分页 `page/page_size`，排序 `sort/order` |
+| POST | `/items` | 创建 note/tex/file；`Idempotency-Key` 支持 24h 重放 |
+| GET | `/items/{id}` | 详情（含回收站条目） |
+| PATCH | `/items/{id}` | 改标题/标签/状态，`expected_version` 或 `If-Match` 乐观锁 |
+| DELETE | `/items/{id}` | 软删除进回收站（幂等） |
+| POST | `/items/{id}/restore` | 从回收站恢复 |
+| GET | `/items/{id}/content` | 正文原文，`text/plain`，不使用信封 |
+| PUT | `/items/{id}/content?expected_version=N` | 正文保存，返回 `ItemOut`，版本递增 |
+
 ## 数据层（B1）
 
 - 数据库：SQLite，文件位于 `<PKB_DATA_DIR>/db/pkb.sqlite3`；连接时开启 `foreign_keys`、`WAL`、`busy_timeout`。

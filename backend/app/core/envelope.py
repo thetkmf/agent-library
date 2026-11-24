@@ -18,10 +18,13 @@ def envelope(data: Any = None, *, message: str = "ok", code: int = 0) -> dict[st
 
 
 def error_envelope(
-    code: int, message: str, details: dict[str, Any] | None = None
+    code: int,
+    message: str,
+    details: dict[str, Any] | None = None,
+    data: Any = None,
 ) -> dict[str, Any]:
-    """Build a failure envelope."""
-    payload = envelope(None, message=message, code=int(code))
+    """Build a failure envelope; `data` carries the current resource on conflicts."""
+    payload = envelope(data, message=message, code=int(code))
     if details is not None:
         payload["details"] = details
     return payload

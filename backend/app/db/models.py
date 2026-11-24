@@ -221,6 +221,7 @@ class LearningPlan(TimestampMixin, Base):
     __tablename__ = "learning_plans"
     __table_args__ = (
         CheckConstraint(_in_clause("status", PLAN_STATUSES), name="status"),
+        CheckConstraint("version >= 1", name="version_min"),
         Index("ix_learning_plans_status", "status"),
     )
 
@@ -326,3 +327,19 @@ class AppSetting(Base):
     updated_at: Mapped[datetime] = mapped_column(
         UtcDateTime, default=utcnow, onupdate=utcnow, nullable=False
     )
+
+
+class IdempotencyKey(Base):
+    """Stored first response for a create request, keyed by Idempotency-Key."""
+
+    __tablename__ = "idempotency_keys"
+    __table_args__ = (
+        CheckConstraint("length(key) > 0", name="key_not_empty"),
+        Index("ix_idempotency_keys_created_at", "created_at"),
+    )
+
+    key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    scope: Mapped[str] = mapped_column(String(60), nullable=False)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    response_data: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow, nullable=False)
