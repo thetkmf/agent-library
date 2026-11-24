@@ -1,7 +1,7 @@
 /**
- * 检索与索引 Mock（F6 前置，契约 9.5）。
- * B6 尚未产出真实 `/search`、`/index/status`；按《开发过程》13.6 提供同形替身。
- * B6 合入后删除本文件、从 `src/mocks/index.ts` 移除路由、重跑 `gen:api`。
+ * 检索与索引 Mock —— 仅测试用的夹具。
+ * B6 已合入真实 `/search`、`/index/status`；产品代码中的 mock 已删除，
+ * 这份数据保留为 F6 的 UI 回归夹具（字段对齐《开发接口标准》9.5）。
  */
 import { API_ERROR_CODES } from '@/api/errors';
 import type {
@@ -11,8 +11,8 @@ import type {
   SearchMode,
 } from '@/api/queries/search';
 import { SEARCH_QUERY_MAX } from '@/api/queries/search';
-import { fail, ok } from './envelope';
-import type { MockRequest, MockResponse, MockRoute } from './router';
+import { fail, ok } from '@/mocks/envelope';
+import type { MockRequest, MockResponse, MockRoute } from '@/mocks/router';
 
 interface Doc {
   id: string;
@@ -269,7 +269,7 @@ export const searchMockRoutes: MockRoute[] = [
     id: 'F6/search',
     method: 'GET',
     pattern: /^\/search$/,
-    handler: (request) => search(request),
+    handler: (request: MockRequest) => search(request),
   },
   {
     id: 'F6/index-status',
@@ -281,6 +281,6 @@ export const searchMockRoutes: MockRoute[] = [
     id: 'F6/index-reindex',
     method: 'POST',
     pattern: /^\/index\/reindex$/,
-    handler: (request) => reindex(request.text),
+    handler: (request: MockRequest) => reindex(request.text),
   },
 ];

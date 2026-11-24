@@ -27,6 +27,11 @@ export const queryKeys = {
     all: ['tags'] as const,
     list: () => [...queryKeys.tags.all, 'list'] as const,
   },
+  agent: {
+    all: ['agent'] as const,
+    conversations: () => [...queryKeys.agent.all, 'conversations'] as const,
+    conversation: (id: string) => [...queryKeys.agent.all, 'conversation', id] as const,
+  },
   search: {
     all: ['search'] as const,
     lists: () => [...queryKeys.search.all, 'list'] as const,

@@ -21,6 +21,8 @@ export interface MockRequest {
   headers: Headers;
   /** 请求体原文（JSON 或 text/plain） */
   text: string;
+  /** 客户端取消信号（用于中断 SSE 流等长连接） */
+  signal?: AbortSignal;
 }
 
 export interface MockResponse {
@@ -31,6 +33,8 @@ export interface MockResponse {
   text?: string;
   contentType?: string;
   headers?: Record<string, string>;
+  /** 直接返回自定义 Response（如 SSE 流），此时忽略 body/text */
+  response?: Response;
 }
 
 export type MockHandler = (
@@ -60,6 +64,9 @@ export interface CreateMockFetchOptions {
 }
 
 function toResponse(result: MockResponse): Response {
+  if (result.response) {
+    return result.response;
+  }
   const headers = new Headers({ 'X-Request-Id': crypto.randomUUID(), ...result.headers });
   if (result.text !== undefined) {
     headers.set('Content-Type', result.contentType ?? 'text/plain; charset=utf-8');
@@ -90,6 +97,7 @@ export function createMockFetch(options: CreateMockFetchOptions): typeof fetch {
       searchParams: url.searchParams,
       headers: new Headers(init?.headers as HeadersInit | undefined),
       text: typeof init?.body === 'string' ? init.body : '',
+      signal: init?.signal ?? undefined,
     };
 
     for (const route of options.routes) {

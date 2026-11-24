@@ -1,6 +1,12 @@
 import { buildUrl } from './client';
 import { getApiConfig } from './config';
-import { ApiError, displayFallbackFor, kindForHttpStatus, toApiError } from './errors';
+import {
+  ApiError,
+  displayFallbackFor,
+  isRetryableKind,
+  kindForHttpStatus,
+  toApiError,
+} from './errors';
 
 export interface SseEvent {
   event: string;
@@ -217,9 +223,9 @@ export function openSseStream(path: string, options: SseStreamOptions): SseHandl
           break;
         }
         options.onError?.(error);
-        // 认证失败重连没有意义（token 未变化），直接收尾；
-        // 凭据续期由调用方（F7 对话页）处理后再重新开流。
-        if (error.kind === 'auth') {
+        // 认证失败重连没有意义（token 未变化），凭据续期由调用方处理后再重新开流；
+        // 非可重试错误（参数、404、冲突等）也不重连，避免无谓退避等待。
+        if (error.kind === 'auth' || !isRetryableKind(error.kind)) {
           break;
         }
         if (attempt >= maxRetries) {

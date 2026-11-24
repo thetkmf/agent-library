@@ -6,7 +6,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { configureApi, resetApiConfig } from '@/api/config';
 import { createMockFetch, MOCK_BASE_URL } from '@/mocks/router';
-import { resetSearchMocks, searchMockRoutes } from '@/mocks/search';
+import { resetSearchMocks, searchMockRoutes } from '../fixtures/search-mock';
 import { SearchPage } from '@/features/search/SearchPage';
 
 function createClient(): QueryClient {

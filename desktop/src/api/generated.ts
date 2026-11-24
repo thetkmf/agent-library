@@ -4,6 +4,256 @@
  */
 
 export interface paths {
+    "/api/v1/agent/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * SSE 流式对话（message.started/delta/completed/error）
+         * @description Stream one chat turn.
+         *
+         *     Pre-flight failures return HTTP errors; mid-stream failures emit an `error` event.
+         */
+        post: operations["chat_api_v1_agent_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 会话列表（updated_at DESC）
+         * @description List conversations newest first.
+         */
+        get: operations["list_conversations_api_v1_agent_conversations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/conversations/{conversation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 会话详情（消息升序）
+         * @description Return one conversation with its messages.
+         */
+        get: operations["get_conversation_api_v1_agent_conversations__conversation_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * 删除会话（级联消息）
+         * @description Hard-delete a conversation and its messages.
+         */
+        delete: operations["delete_conversation_api_v1_agent_conversations__conversation_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 用户画像
+         * @description Return the stored profile (empty payload when never refreshed).
+         */
+        get: operations["get_profile_api_v1_ai_profile_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/profile/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 触发画像刷新（202 任务）
+         * @description Enqueue a profile_refresh task.
+         */
+        post: operations["refresh_profile_api_v1_ai_profile_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 整理建议列表（可按 status/type/item_id 过滤）
+         * @description List automation suggestions.
+         */
+        get: operations["list_suggestions_api_v1_ai_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/suggestions/{suggestion_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 采纳建议（tag→关联标签，link→建图边，summary→写 ai_summary）
+         * @description Apply a suggestion atomically; repeated accept is idempotent.
+         */
+        post: operations["accept_suggestion_api_v1_ai_suggestions__suggestion_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/suggestions/{suggestion_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 拒绝建议
+         * @description Reject a pending suggestion.
+         */
+        post: operations["reject_suggestion_api_v1_ai_suggestions__suggestion_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 任务列表（按创建时间倒序，可按 status/type 过滤）
+         * @description List tasks with filters.
+         */
+        get: operations["list_tasks_api_v1_ai_tasks_get"];
+        put?: never;
+        /**
+         * 创建 AI 任务（organize/summarize/tagging/linking/profile_refresh/graph_build）
+         * @description Enqueue one AI task; requires a configured model and external-call consent.
+         */
+        post: operations["create_task_api_v1_ai_tasks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 任务详情
+         * @description Return one task.
+         */
+        get: operations["get_task_api_v1_ai_tasks__task_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/tasks/{task_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 取消任务（仅 queued/running）
+         * @description Cancel a queued or running task.
+         */
+        post: operations["cancel_task_api_v1_ai_tasks__task_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 系统事件流（reminder.due 等；不重放历史）
+         * @description Subscribe to in-process events; 15s heartbeat comments keep the socket alive.
+         */
+        get: operations["stream_api_v1_events_stream_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/files": {
         parameters: {
             query?: never;
@@ -44,6 +294,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/graph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 全图/子图（center_id + depth，或按权重截断）
+         * @description Return nodes plus edges whose both ends are in the result set.
+         */
+        get: operations["get_graph_api_v1_graph_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/graph/neighbors/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 条目的直接邻居子图
+         * @description Return the item node and its direct neighbours.
+         */
+        get: operations["neighbors_api_v1_graph_neighbors__item_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/graph/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 节点数、边数、孤立节点数
+         * @description Return graph counters.
+         */
+        get: operations["stats_api_v1_graph_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -53,6 +363,46 @@ export interface paths {
         };
         /** 存活检查 */
         get: operations["_read_health_api_v1_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/index/reindex": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 触发增量/全量重建（202 + 任务）
+         * @description Queue a reindex task; 409 when one is already running.
+         */
+        post: operations["start_reindex_api_v1_index_reindex_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/index/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 索引状态（嵌入、已索引、待索引、最近任务）
+         * @description Return counters, embedding state and the latest task.
+         */
+        get: operations["get_index_status_api_v1_index_status_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -101,7 +451,7 @@ export interface paths {
         post?: never;
         /**
          * 软删除条目（进回收站）
-         * @description Move an item into the recycle bin and return its id.
+         * @description Move an item into the recycle bin and drop its vectors.
          */
         delete: operations["delete_item_api_v1_items__item_id__delete"];
         options?: never;
@@ -192,6 +542,298 @@ export interface paths {
          * @description Remove one tag association; a missing association returns 404 + 30001.
          */
         delete: operations["detach_tag_api_v1_items__item_id__tags__tag_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/learning/milestones/{milestone_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * 删除里程碑（计划版本 +1）
+         * @description Delete a milestone.
+         */
+        delete: operations["delete_milestone_api_v1_learning_milestones__milestone_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * 更新里程碑（进度/状态联动）
+         * @description Update milestone progress/status following the contract rules.
+         */
+        patch: operations["update_milestone_api_v1_learning_milestones__milestone_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/learning/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 计划列表（可按 status 过滤）
+         * @description List learning plans.
+         */
+        get: operations["list_plans_api_v1_learning_plans_get"];
+        put?: never;
+        /**
+         * 创建计划（可带里程碑）
+         * @description Create a plan; ``target_date`` must not precede ``start_date``.
+         */
+        post: operations["create_plan_api_v1_learning_plans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/learning/plans/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 计划详情（含里程碑）
+         * @description Return one plan with milestones ordered by sort_order.
+         */
+        get: operations["get_plan_api_v1_learning_plans__plan_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * 删除计划（级联里程碑）
+         * @description Delete a plan and its milestones.
+         */
+        delete: operations["delete_plan_api_v1_learning_plans__plan_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * 更新计划（必须带 expected_version）
+         * @description Update a plan; stale version returns 409 + 30003 with the current plan.
+         */
+        patch: operations["update_plan_api_v1_learning_plans__plan_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/learning/plans/{plan_id}/milestones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 新增里程碑（计划版本 +1）
+         * @description Append a milestone; the owning plan's version is bumped.
+         */
+        post: operations["add_milestone_api_v1_learning_plans__plan_id__milestones_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/learning/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 学习进度汇总（计划数、完成率、连续学习天数）
+         * @description Aggregate progress across all plans.
+         */
+        get: operations["progress_api_v1_learning_progress_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 用户基础资料
+         * @description Return the base profile (not the AI profile).
+         */
+        get: operations["get_profile_api_v1_profile_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 更新基础资料（timezone 为 IANA 名称）
+         * @description Patch the base profile; invalid timezone → 40002.
+         */
+        patch: operations["patch_profile_api_v1_profile_patch"];
+        trace?: never;
+    };
+    "/api/v1/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 提醒列表（按提醒时间升序，可按 status/from/to 过滤）
+         * @description List reminders.
+         */
+        get: operations["list_reminders_api_v1_reminders_get"];
+        put?: never;
+        /**
+         * 创建提醒
+         * @description Create a reminder; ``remind_at`` must be in the future.
+         */
+        post: operations["create_reminder_api_v1_reminders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reminders/{reminder_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * 取消提醒（幂等）
+         * @description Cancel a reminder.
+         */
+        delete: operations["cancel_reminder_api_v1_reminders__reminder_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * 修改提醒（标题/内容/时间/重复/关联条目）
+         * @description Patch a reminder and reschedule it.
+         */
+        patch: operations["update_reminder_api_v1_reminders__reminder_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/reminders/{reminder_id}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 标记完成（重复规则自动生成下一次）
+         * @description Mark done; repeating reminders spawn the next occurrence.
+         */
+        post: operations["done_reminder_api_v1_reminders__reminder_id__done_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reminders/{reminder_id}/snooze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 稍后提醒（1–10080 分钟）
+         * @description Snooze a reminder.
+         */
+        post: operations["snooze_reminder_api_v1_reminders__reminder_id__snooze_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 检索：关键词 / 语义 / 混合（RRF）
+         * @description Search active items; embeddings unavailable degrades to keyword search.
+         */
+        get: operations["search_api_v1_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取非敏感配置（Key 只回 has_key）
+         * @description Return nested non-sensitive settings.
+         */
+        get: operations["get_settings_api_v1_settings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 更新配置（部分字段；只读分区 40002）
+         * @description Patch writable settings; ``api_key`` is write-only.
+         */
+        patch: operations["patch_settings_api_v1_settings_patch"];
+        trace?: never;
+    };
+    "/api/v1/settings/test-model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 测试模型连通性（返回延迟与模型名）
+         * @description Call DeepSeek once with a minimal prompt; logs never include the key.
+         */
+        post: operations["test_model_api_v1_settings_test_model_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -401,6 +1043,110 @@ export interface components {
             ready: boolean;
         };
         /**
+         * AiPatch
+         * @description Writable automation fields.
+         */
+        AiPatch: {
+            /** Auto Organize Enabled */
+            auto_organize_enabled?: boolean | null;
+        };
+        /**
+         * AiSettings
+         * @description Automation section.
+         */
+        AiSettings: {
+            /**
+             * Auto Organize Enabled
+             * @default false
+             */
+            auto_organize_enabled: boolean;
+        };
+        /**
+         * AiTaskCreate
+         * @description Body of POST /ai/tasks.
+         */
+        AiTaskCreate: {
+            /** Item Ids */
+            item_ids?: string[];
+            /** Options */
+            options?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "organize" | "summarize" | "tagging" | "linking" | "profile_refresh" | "graph_build";
+        };
+        /**
+         * AiTaskOut
+         * @description Task shape shared by create/list/detail responses.
+         */
+        AiTaskOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error?: {
+                [key: string]: unknown;
+            } | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Id */
+            id: string;
+            /** Input */
+            input?: {
+                [key: string]: unknown;
+            };
+            /** Progress */
+            progress: number;
+            /** Result */
+            result?: {
+                [key: string]: unknown;
+            } | null;
+            /** Started At */
+            started_at?: string | null;
+            /** Status */
+            status: string;
+            /** Type */
+            type: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * AiTaskPage
+         * @description Paginated task list.
+         */
+        AiTaskPage: {
+            /**
+             * Has More
+             * @default false
+             */
+            has_more: boolean;
+            /** Items */
+            items?: components["schemas"]["AiTaskOut"][];
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /**
+             * Page Size
+             * @default 20
+             */
+            page_size: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+        };
+        /**
          * AttachTagsRequest
          * @description Bulk tag association payload; duplicates and existing links are ignored.
          */
@@ -428,6 +1174,36 @@ export interface components {
             vector: components["schemas"]["VectorCapability"];
         };
         /**
+         * ChatMessageIn
+         * @description One inbound chat message.
+         */
+        ChatMessageIn: {
+            /** Content */
+            content: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "system" | "user" | "assistant";
+        };
+        /**
+         * ChatRequest
+         * @description Body of POST /agent/chat.
+         */
+        ChatRequest: {
+            /** Context Item Ids */
+            context_item_ids?: string[];
+            /** Conversation Id */
+            conversation_id?: string | null;
+            /** Messages */
+            messages: components["schemas"]["ChatMessageIn"][];
+            /**
+             * Stream
+             * @default true
+             */
+            stream: boolean;
+        };
+        /**
          * ChunkResult
          * @description Result of one chunk PUT.
          */
@@ -436,6 +1212,86 @@ export interface components {
             index: number;
             /** Sha256 */
             sha256: string;
+        };
+        /**
+         * ConversationDetail
+         * @description Conversation with its messages in ascending order.
+         */
+        ConversationDetail: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /**
+             * Message Count
+             * @default 0
+             */
+            message_count: number;
+            /** Messages */
+            messages?: components["schemas"]["MessageOut"][];
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * ConversationPage
+         * @description Paginated conversation list.
+         */
+        ConversationPage: {
+            /**
+             * Has More
+             * @default false
+             */
+            has_more: boolean;
+            /** Items */
+            items?: components["schemas"]["ConversationSummary"][];
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /**
+             * Page Size
+             * @default 20
+             */
+            page_size: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+        };
+        /**
+         * ConversationSummary
+         * @description Conversation row without messages.
+         */
+        ConversationSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /**
+             * Message Count
+             * @default 0
+             */
+            message_count: number;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /**
          * EmbeddingCapability
@@ -452,6 +1308,62 @@ export interface components {
              * @enum {string}
              */
             status: "ready" | "missing" | "loading" | "error";
+        };
+        /** EmbeddingInfo */
+        EmbeddingInfo: {
+            /** Dimension */
+            dimension: number;
+            /** Model */
+            model: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ready" | "missing" | "loading" | "error";
+        };
+        /**
+         * EmbeddingSettings
+         * @description Local embedding section.
+         */
+        EmbeddingSettings: {
+            /** Dimension */
+            dimension: number;
+            /** Model */
+            model: string;
+            /** Status */
+            status: string;
+        };
+        /** Envelope[AiTaskOut] */
+        Envelope_AiTaskOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["AiTaskOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[AiTaskPage] */
+        Envelope_AiTaskPage_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["AiTaskPage"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
         };
         /** Envelope[CapabilitiesOut] */
         Envelope_CapabilitiesOut_: {
@@ -485,6 +1397,86 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** Envelope[ConversationDetail] */
+        Envelope_ConversationDetail_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["ConversationDetail"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[ConversationPage] */
+        Envelope_ConversationPage_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["ConversationPage"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[GraphOut] */
+        Envelope_GraphOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["GraphOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[GraphStatsOut] */
+        Envelope_GraphStatsOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["GraphStatsOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[IndexStatusOut] */
+        Envelope_IndexStatusOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["IndexStatusOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
         /** Envelope[ItemOut] */
         Envelope_ItemOut_: {
             /**
@@ -501,6 +1493,22 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** Envelope[MilestoneOut] */
+        Envelope_MilestoneOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["MilestoneOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
         /** Envelope[Page[ItemOut]] */
         Envelope_Page_ItemOut__: {
             /**
@@ -509,6 +1517,198 @@ export interface components {
              */
             code: number;
             data?: components["schemas"]["Page_ItemOut_"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[PlanOut] */
+        Envelope_PlanOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["PlanOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[PlanPage] */
+        Envelope_PlanPage_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["PlanPage"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[ProfileBaseOut] */
+        Envelope_ProfileBaseOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["ProfileBaseOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[ProfileOut] */
+        Envelope_ProfileOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["ProfileOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[ProgressOut] */
+        Envelope_ProgressOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["ProgressOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[ReindexAccepted] */
+        Envelope_ReindexAccepted_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["ReindexAccepted"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[ReminderOut] */
+        Envelope_ReminderOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["ReminderOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[ReminderPage] */
+        Envelope_ReminderPage_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["ReminderPage"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[SearchResponse] */
+        Envelope_SearchResponse_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["SearchResponse"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[SettingsOut] */
+        Envelope_SettingsOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["SettingsOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[SuggestionOut] */
+        Envelope_SuggestionOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["SuggestionOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[SuggestionPage] */
+        Envelope_SuggestionPage_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["SuggestionPage"] | null;
             /**
              * Message
              * @default ok
@@ -541,6 +1741,22 @@ export interface components {
              */
             code: number;
             data?: components["schemas"]["TagOut"] | null;
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+            /** Request Id */
+            request_id: string;
+        };
+        /** Envelope[TestModelOut] */
+        Envelope_TestModelOut_: {
+            /**
+             * Code
+             * @default 0
+             */
+            code: number;
+            data?: components["schemas"]["TestModelOut"] | null;
             /**
              * Message
              * @default ok
@@ -674,6 +1890,80 @@ export interface components {
             /** Size Bytes */
             size_bytes: number;
         };
+        /**
+         * GraphEdgeOut
+         * @description Directed edge between two nodes in the same result set.
+         */
+        GraphEdgeOut: {
+            /** Id */
+            id: string;
+            /** Relation */
+            relation: string;
+            /** Source */
+            source: string;
+            /** Target */
+            target: string;
+            /**
+             * Weight
+             * @default 0
+             */
+            weight: number;
+        };
+        /**
+         * GraphNodeOut
+         * @description One graph node.
+         */
+        GraphNodeOut: {
+            /** Id */
+            id: string;
+            /** Item Id */
+            item_id?: string | null;
+            /** Label */
+            label: string;
+            /** Type */
+            type: string;
+            /**
+             * Weight
+             * @default 0
+             */
+            weight: number;
+        };
+        /**
+         * GraphOut
+         * @description Subgraph response.
+         */
+        GraphOut: {
+            /** Edges */
+            edges?: components["schemas"]["GraphEdgeOut"][];
+            /** Nodes */
+            nodes?: components["schemas"]["GraphNodeOut"][];
+        };
+        /**
+         * GraphStatsOut
+         * @description Graph overview counters.
+         */
+        GraphStatsOut: {
+            /**
+             * Edge Count
+             * @default 0
+             */
+            edge_count: number;
+            /**
+             * Isolated Node Count
+             * @default 0
+             */
+            isolated_node_count: number;
+            /**
+             * Node Count
+             * @default 0
+             */
+            node_count: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -692,6 +1982,34 @@ export interface components {
             status: "ok";
             /** Version */
             version: string;
+        };
+        /**
+         * IndexStatusOut
+         * @description Body of GET /index/status.
+         */
+        IndexStatusOut: {
+            embedding: components["schemas"]["EmbeddingInfo"];
+            /** Indexed Count */
+            indexed_count: number;
+            /** Last Updated At */
+            last_updated_at?: string | null;
+            /** Pending Count */
+            pending_count: number;
+            /** Ready */
+            ready: boolean;
+            task?: components["schemas"]["IndexTaskState"] | null;
+        };
+        /**
+         * IndexTaskState
+         * @description Current or last reindex task.
+         */
+        IndexTaskState: {
+            /** Id */
+            id: string;
+            /** Progress */
+            progress: number;
+            /** Status */
+            status: string;
         };
         /**
          * ItemCreate
@@ -779,6 +2097,133 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /**
+         * MessageOut
+         * @description Persisted message.
+         */
+        MessageOut: {
+            /** Citations */
+            citations?: {
+                [key: string]: unknown;
+            }[];
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Role */
+            role: string;
+            /** Tool Calls */
+            tool_calls?: {
+                [key: string]: unknown;
+            }[];
+        };
+        /**
+         * MilestoneCreate
+         * @description Milestone to add to a plan.
+         */
+        MilestoneCreate: {
+            /** Due Date */
+            due_date?: string | null;
+            /**
+             * Progress
+             * @default 0
+             */
+            progress: number;
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
+            /**
+             * Status
+             * @default todo
+             * @enum {string}
+             */
+            status: "todo" | "in_progress" | "done";
+            /** Title */
+            title: string;
+        };
+        /**
+         * MilestoneOut
+         * @description Milestone projection.
+         */
+        MilestoneOut: {
+            /** Completed At */
+            completed_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Due Date */
+            due_date?: string | null;
+            /** Id */
+            id: string;
+            /** Plan Id */
+            plan_id: string;
+            /** Progress */
+            progress: number;
+            /** Sort Order */
+            sort_order: number;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * MilestoneUpdate
+         * @description Partial milestone update.
+         */
+        MilestoneUpdate: {
+            /** Due Date */
+            due_date?: string | null;
+            /** Progress */
+            progress?: number | null;
+            /** Sort Order */
+            sort_order?: number | null;
+            /** Status */
+            status?: ("todo" | "in_progress" | "done") | null;
+            /** Title */
+            title?: string | null;
+        };
+        /**
+         * ModelPatch
+         * @description Writable model fields; ``api_key`` is write-only.
+         */
+        ModelPatch: {
+            /** Api Key */
+            api_key?: string | null;
+            /** Base Url */
+            base_url?: string | null;
+            /** Name */
+            name?: ("deepseek-chat" | "deepseek-reasoner") | null;
+            /** Provider */
+            provider?: string | null;
+        };
+        /**
+         * ModelSettings
+         * @description Model section (read response).
+         */
+        ModelSettings: {
+            /** Base Url */
+            base_url: string;
+            /** Has Key */
+            has_key: boolean;
+            /** Name */
+            name: string;
+            /** Provider */
+            provider: string;
+        };
         /** Page[ItemOut] */
         Page_ItemOut_: {
             /**
@@ -804,10 +2249,522 @@ export interface components {
              */
             total: number;
         };
+        /**
+         * PlanCreate
+         * @description Body of POST /learning/plans.
+         */
+        PlanCreate: {
+            /** Goal */
+            goal?: string | null;
+            /** Milestones */
+            milestones?: components["schemas"]["MilestoneCreate"][];
+            /** Start Date */
+            start_date?: string | null;
+            /**
+             * Status
+             * @default planning
+             * @enum {string}
+             */
+            status: "planning" | "active" | "done" | "archived";
+            /** Target Date */
+            target_date?: string | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * PlanOut
+         * @description Learning plan with milestones.
+         */
+        PlanOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Goal */
+            goal?: string | null;
+            /** Id */
+            id: string;
+            /** Milestones */
+            milestones?: components["schemas"]["MilestoneOut"][];
+            /** Start Date */
+            start_date?: string | null;
+            /** Status */
+            status: string;
+            /** Target Date */
+            target_date?: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * PlanPage
+         * @description Paginated plan list.
+         */
+        PlanPage: {
+            /**
+             * Has More
+             * @default false
+             */
+            has_more: boolean;
+            /** Items */
+            items?: components["schemas"]["PlanOut"][];
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /**
+             * Page Size
+             * @default 20
+             */
+            page_size: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+        };
+        /**
+         * PlanUpdate
+         * @description Body of PATCH /learning/plans/{id}; ``expected_version`` is mandatory.
+         */
+        PlanUpdate: {
+            /** Expected Version */
+            expected_version: number;
+            /** Goal */
+            goal?: string | null;
+            /** Start Date */
+            start_date?: string | null;
+            /** Status */
+            status?: ("planning" | "active" | "done" | "archived") | null;
+            /** Target Date */
+            target_date?: string | null;
+            /** Title */
+            title?: string | null;
+        };
+        /**
+         * PrivacyPatch
+         * @description Writable privacy fields.
+         */
+        PrivacyPatch: {
+            /** Allow External Calls */
+            allow_external_calls?: boolean | null;
+        };
+        /**
+         * PrivacySettings
+         * @description Privacy section.
+         */
+        PrivacySettings: {
+            /**
+             * Allow External Calls
+             * @default false
+             */
+            allow_external_calls: boolean;
+        };
+        /**
+         * ProfileBaseOut
+         * @description Base profile (not the AI profile).
+         */
+        ProfileBaseOut: {
+            /** Bio */
+            bio?: string | null;
+            /** Display Name */
+            display_name?: string | null;
+            /** Preferred Style */
+            preferred_style?: string | null;
+            /**
+             * Timezone
+             * @default UTC
+             */
+            timezone: string;
+            /** Updated At */
+            updated_at?: string | null;
+        };
+        /**
+         * ProfileBaseUpdate
+         * @description Partial base-profile update.
+         */
+        ProfileBaseUpdate: {
+            /** Bio */
+            bio?: string | null;
+            /** Display Name */
+            display_name?: string | null;
+            /** Preferred Style */
+            preferred_style?: string | null;
+            /** Timezone */
+            timezone?: string | null;
+        };
+        /**
+         * ProfileOut
+         * @description User profile (§8.9).
+         */
+        ProfileOut: {
+            /** Interests */
+            interests?: string[];
+            /** Knowledge Domains */
+            knowledge_domains?: {
+                [key: string]: unknown;
+            }[];
+            /** Learning Goals */
+            learning_goals?: string[];
+            /** Preferred Style */
+            preferred_style?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+        };
+        /**
+         * ProgressOut
+         * @description Aggregate learning progress.
+         */
+        ProgressOut: {
+            /**
+             * Active Plans
+             * @default 0
+             */
+            active_plans: number;
+            /**
+             * Completion Rate
+             * @default 0
+             */
+            completion_rate: number;
+            /**
+             * Done Plans
+             * @default 0
+             */
+            done_plans: number;
+            /**
+             * Milestone Done
+             * @default 0
+             */
+            milestone_done: number;
+            /**
+             * Milestone Total
+             * @default 0
+             */
+            milestone_total: number;
+            /**
+             * Streak Days
+             * @default 0
+             */
+            streak_days: number;
+            /**
+             * Total Plans
+             * @default 0
+             */
+            total_plans: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * ReindexAccepted
+         * @description 202 payload returned when a reindex task is queued.
+         */
+        ReindexAccepted: {
+            /**
+             * Progress
+             * @default 0
+             */
+            progress: number;
+            /**
+             * Status
+             * @default queued
+             */
+            status: string;
+            /** Task Id */
+            task_id: string;
+            /**
+             * Type
+             * @default reindex
+             */
+            type: string;
+        };
+        /**
+         * ReindexRequest
+         * @description Body of POST /index/reindex.
+         */
+        ReindexRequest: {
+            /**
+             * Mode
+             * @default incremental
+             * @enum {string}
+             */
+            mode: "incremental" | "full";
+        };
+        /**
+         * ReminderCreate
+         * @description Body of POST /reminders.
+         */
+        ReminderCreate: {
+            /** Body */
+            body?: string | null;
+            /** Related Item Ids */
+            related_item_ids?: string[];
+            /**
+             * Remind At
+             * Format: date-time
+             */
+            remind_at: string;
+            /**
+             * Repeat Rule
+             * @default none
+             * @enum {string}
+             */
+            repeat_rule: "none" | "daily" | "weekly" | "monthly";
+            /** Title */
+            title: string;
+        };
+        /**
+         * ReminderOut
+         * @description Reminder projection.
+         */
+        ReminderOut: {
+            /** Body */
+            body?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Related Item Ids */
+            related_item_ids?: string[];
+            /**
+             * Remind At
+             * Format: date-time
+             */
+            remind_at: string;
+            /** Repeat Rule */
+            repeat_rule: string;
+            /** Snooze Until */
+            snooze_until?: string | null;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * ReminderPage
+         * @description Paginated reminder list.
+         */
+        ReminderPage: {
+            /**
+             * Has More
+             * @default false
+             */
+            has_more: boolean;
+            /** Items */
+            items?: components["schemas"]["ReminderOut"][];
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /**
+             * Page Size
+             * @default 20
+             */
+            page_size: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+        };
+        /**
+         * ReminderUpdate
+         * @description Body of PATCH /reminders/{id} — only provided fields change.
+         */
+        ReminderUpdate: {
+            /** Body */
+            body?: string | null;
+            /** Related Item Ids */
+            related_item_ids?: string[] | null;
+            /** Remind At */
+            remind_at?: string | null;
+            /** Repeat Rule */
+            repeat_rule?: ("none" | "daily" | "weekly" | "monthly") | null;
+            /** Title */
+            title?: string | null;
+        };
+        /**
+         * SearchHitOut
+         * @description One search result.
+         */
+        SearchHitOut: {
+            item: components["schemas"]["SearchItemRef"];
+            /**
+             * Match Type
+             * @enum {string}
+             */
+            match_type: "keyword" | "semantic";
+            /** Score */
+            score: number;
+            /** Snippet */
+            snippet: string;
+        };
+        /**
+         * SearchItemRef
+         * @description Minimal item projection embedded in search hits.
+         */
+        SearchItemRef: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "note" | "tex" | "file";
+        };
+        /**
+         * SearchResponse
+         * @description Body of GET /search.
+         */
+        SearchResponse: {
+            /**
+             * Degraded
+             * @default false
+             */
+            degraded: boolean;
+            /** Items */
+            items?: components["schemas"]["SearchHitOut"][];
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "keyword" | "semantic" | "hybrid";
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+        };
+        /**
+         * SettingsOut
+         * @description Nested non-sensitive settings.
+         */
+        SettingsOut: {
+            ai: components["schemas"]["AiSettings"];
+            embedding: components["schemas"]["EmbeddingSettings"];
+            model: components["schemas"]["ModelSettings"];
+            privacy: components["schemas"]["PrivacySettings"];
+            storage: components["schemas"]["StorageSettings"];
+            ui: components["schemas"]["UiSettings"];
+        };
+        /**
+         * SettingsPatch
+         * @description Partial settings update.
+         */
+        SettingsPatch: {
+            ai?: components["schemas"]["AiPatch"] | null;
+            /** Embedding */
+            embedding?: {
+                [key: string]: unknown;
+            } | null;
+            model?: components["schemas"]["ModelPatch"] | null;
+            privacy?: components["schemas"]["PrivacyPatch"] | null;
+            /** Storage */
+            storage?: {
+                [key: string]: unknown;
+            } | null;
+            ui?: components["schemas"]["UiPatch"] | null;
+        };
+        /**
+         * SnoozeRequest
+         * @description Body of POST /reminders/{id}/snooze.
+         */
+        SnoozeRequest: {
+            /** Minutes */
+            minutes: number;
+        };
         /** StorageInfo */
         StorageInfo: {
             /** Free Bytes */
             free_bytes: number;
+        };
+        /**
+         * StorageSettings
+         * @description Storage section (no absolute item paths).
+         */
+        StorageSettings: {
+            /** Allowed Extensions */
+            allowed_extensions: string[];
+            /** Data Dir */
+            data_dir: string;
+            /** Max File Bytes */
+            max_file_bytes: number;
+            /** Max Small File Bytes */
+            max_small_file_bytes: number;
+        };
+        /**
+         * SuggestionOut
+         * @description One automation suggestion.
+         */
+        SuggestionOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decided At */
+            decided_at?: string | null;
+            /** Id */
+            id: string;
+            /** Item Id */
+            item_id: string;
+            /** Payload */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status: string;
+            /** Type */
+            type: string;
+        };
+        /**
+         * SuggestionPage
+         * @description Paginated suggestion list.
+         */
+        SuggestionPage: {
+            /**
+             * Has More
+             * @default false
+             */
+            has_more: boolean;
+            /** Items */
+            items?: components["schemas"]["SuggestionOut"][];
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /**
+             * Page Size
+             * @default 20
+             */
+            page_size: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
         };
         /**
          * SystemInfoOut
@@ -873,6 +2830,26 @@ export interface components {
             name: string;
         };
         /**
+         * TestModelOut
+         * @description Connectivity result.
+         */
+        TestModelOut: {
+            /** Latency Ms */
+            latency_ms: number;
+            /** Model */
+            model: string;
+            /** Ok */
+            ok: boolean;
+        };
+        /**
+         * TestModelRequest
+         * @description Body of POST /settings/test-model.
+         */
+        TestModelRequest: {
+            /** Model */
+            model?: ("deepseek-chat" | "deepseek-reasoner") | null;
+        };
+        /**
          * TimelineGroup
          * @description One day / week / month bucket containing the items from the current page.
          */
@@ -900,6 +2877,26 @@ export interface components {
             has_more: boolean;
             /** Next Cursor */
             next_cursor?: string | null;
+        };
+        /**
+         * UiPatch
+         * @description Writable UI fields.
+         */
+        UiPatch: {
+            /** Theme */
+            theme?: ("light" | "dark" | "system") | null;
+        };
+        /**
+         * UiSettings
+         * @description UI section.
+         */
+        UiSettings: {
+            /**
+             * Theme
+             * @default system
+             * @enum {string}
+             */
+            theme: "light" | "dark" | "system";
         };
         /**
          * UploadInitOut
@@ -974,6 +2971,962 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    chat_api_v1_agent_chat_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatRequest"];
+            };
+        };
+        responses: {
+            /** @description SSE 事件流 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 会话/上下文条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description 上游模型错误 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_conversations_api_v1_agent_conversations_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ConversationPage_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 会话/上下文条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_conversation_api_v1_agent_conversations__conversation_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ConversationDetail_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 会话/上下文条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_conversation_api_v1_agent_conversations__conversation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_dict_str__str__"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 会话/上下文条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_profile_api_v1_ai_profile_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ProfileOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 任务/建议/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置或状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_profile_api_v1_ai_profile_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_AiTaskOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 任务/建议/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置或状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_suggestions_api_v1_ai_suggestions_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: string | null;
+                type?: string | null;
+                item_id?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SuggestionPage_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 任务/建议/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置或状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_suggestion_api_v1_ai_suggestions__suggestion_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SuggestionOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 任务/建议/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置或状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_suggestion_api_v1_ai_suggestions__suggestion_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SuggestionOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 任务/建议/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置或状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_tasks_api_v1_ai_tasks_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: string | null;
+                type?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_AiTaskPage_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 任务/建议/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置或状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_task_api_v1_ai_tasks_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiTaskCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_AiTaskOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 任务/建议/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置或状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_task_api_v1_ai_tasks__task_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_AiTaskOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 任务/建议/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置或状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_task_api_v1_ai_tasks__task_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_AiTaskOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 任务/建议/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置或状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stream_api_v1_events_stream_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description SSE 事件流 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     upload_file_api_v1_files_post: {
         parameters: {
             query?: never;
@@ -1113,6 +4066,187 @@ export interface operations {
             };
         };
     };
+    get_graph_api_v1_graph_get: {
+        parameters: {
+            query?: {
+                center_id?: string | null;
+                depth?: number;
+                types?: string[] | null;
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_GraphOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 节点/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    neighbors_api_v1_graph_neighbors__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_GraphOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 节点/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stats_api_v1_graph_stats_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_GraphStatsOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 节点/条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     _read_health_api_v1_health_get: {
         parameters: {
             query?: never;
@@ -1129,6 +4263,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthOut"];
+                };
+            };
+        };
+    };
+    start_reindex_api_v1_index_reindex_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReindexRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReindexAccepted_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 已有任务在执行 / 模型未就绪 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_index_status_api_v1_index_status_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_IndexStatusOut_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1749,6 +4985,1516 @@ export interface operations {
             };
             /** @description 参数校验失败 */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    delete_milestone_api_v1_learning_milestones__milestone_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_dict_str__str__"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 计划/里程碑不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 版本冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_milestone_api_v1_learning_milestones__milestone_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                milestone_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_MilestoneOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 计划/里程碑不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 版本冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_plans_api_v1_learning_plans_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_PlanPage_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 计划/里程碑不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 版本冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_plan_api_v1_learning_plans_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_PlanOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 计划/里程碑不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 版本冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_plan_api_v1_learning_plans__plan_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_PlanOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 计划/里程碑不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 版本冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_plan_api_v1_learning_plans__plan_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_dict_str__str__"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 计划/里程碑不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 版本冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_plan_api_v1_learning_plans__plan_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_PlanOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 计划/里程碑不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 版本冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_milestone_api_v1_learning_plans__plan_id__milestones_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_MilestoneOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 计划/里程碑不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 版本冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    progress_api_v1_learning_progress_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ProgressOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 计划/里程碑不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 版本冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_profile_api_v1_profile_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ProfileBaseOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description 上游模型错误 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 上游超时 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    patch_profile_api_v1_profile_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileBaseUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ProfileBaseOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description 上游模型错误 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 上游超时 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_reminders_api_v1_reminders_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: string | null;
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReminderPage_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 提醒或条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_reminder_api_v1_reminders_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReminderOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 提醒或条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_reminder_api_v1_reminders__reminder_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                reminder_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReminderOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 提醒或条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_reminder_api_v1_reminders__reminder_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                reminder_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReminderOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 提醒或条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    done_reminder_api_v1_reminders__reminder_id__done_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                reminder_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReminderOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 提醒或条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    snooze_reminder_api_v1_reminders__reminder_id__snooze_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                reminder_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SnoozeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReminderOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 提醒或条目不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 状态冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_api_v1_search_get: {
+        parameters: {
+            query: {
+                q: string;
+                mode?: string;
+                limit?: number;
+                type?: string[] | null;
+                tag_id?: string[] | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SearchResponse_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_settings_api_v1_settings_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SettingsOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description 上游模型错误 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 上游超时 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    patch_settings_api_v1_settings_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingsPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SettingsOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description 上游模型错误 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 上游超时 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    test_model_api_v1_settings_test_model_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestModelRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_TestModelOut_"];
+                };
+            };
+            /** @description 参数不合法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 模型未配置 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description 上游模型错误 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description 上游超时 */
+            504: {
                 headers: {
                     [name: string]: unknown;
                 };
