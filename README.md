@@ -23,8 +23,13 @@ docs/
   开发规范.md          # 前后端编码规范、Git 流程、完成定义
   前后端分工.md        # 三工作树职责与协作边界
   开发过程.md          # 多工作树通信文件：任务状态、契约变更、决策、日志
+backend/
+  app/                 # FastAPI 服务（core / api / services / schemas）
+  tests/               # unit / integration / contract
+  openapi.json         # 契约基线，由 scripts/export_openapi.py 生成
 scripts/
   check_progress.py    # 开发过程看板检查器（只读）
+  export_openapi.py    # 导出/校验后端 OpenAPI 契约
 ```
 
 ## 开发流程
