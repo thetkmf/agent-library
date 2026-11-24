@@ -3,6 +3,11 @@ import { act, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const uploadMock = vi.hoisted(() => vi.fn());
+const largeUploadMock = vi.hoisted(() => vi.fn());
+
+vi.mock('@/features/files/chunked-upload', () => ({
+  uploadLargeFile: largeUploadMock,
+}));
 
 vi.mock('@/api/queries/files', () => ({
   filesApi: {
@@ -12,6 +17,7 @@ vi.mock('@/api/queries/files', () => ({
 }));
 
 import { ApiError } from '@/api/errors';
+import { SMALL_FILE_LIMIT_BYTES } from '@/features/files/file-validation';
 import {
   resetUploadQueueForTests,
   setUploadListener,
@@ -35,6 +41,7 @@ function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void; reje
 beforeEach(() => {
   resetUploadQueueForTests();
   uploadMock.mockReset();
+  largeUploadMock.mockReset();
 });
 
 describe('useUploadQueue', () => {
@@ -148,6 +155,27 @@ describe('useUploadQueue', () => {
     });
 
     await waitFor(() => expect(useUploadQueue.getState().tasks[0]?.status).toBe('canceled'));
+  });
+
+  it('超过 50 MB 的文件走分片上传', async () => {
+    const file = makeFile('big.zip', 1024);
+    Object.defineProperty(file, 'size', { value: SMALL_FILE_LIMIT_BYTES + 1 });
+    largeUploadMock.mockImplementation(
+      async (_file: File, options: { onProgress?: (r: number) => void; onState?: (s: unknown) => void }) => {
+        options.onProgress?.(0.5);
+        options.onState?.({ session: { upload_id: 'up-1' }, done: [0] });
+        return { item: { id: 'item-big' }, file_asset: { id: 'asset-big' } };
+      },
+    );
+
+    act(() => {
+      useUploadQueue.getState().add([file]);
+    });
+
+    await waitFor(() => expect(useUploadQueue.getState().tasks[0]?.status).toBe('done'));
+    expect(uploadMock).not.toHaveBeenCalled();
+    expect(largeUploadMock).toHaveBeenCalledTimes(1);
+    expect(useUploadQueue.getState().tasks[0]?.chunksDone).toEqual([0]);
   });
 
   it('clearFinished 只保留未完成项', async () => {

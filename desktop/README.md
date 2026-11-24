@@ -198,7 +198,19 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - [x] 可访问性：跳转主内容链接、`aria-current`、`role=alert`、`aria-busy`、`prefers-reduced-motion`
 - [x] 测试：新增 store / Sidebar / 路由 / 状态组件测试，合计 47 项
 
-## 8.1 F4 时间轴与标签
+## 8.1 F5 文件管理
+
+| 能力 | 实现 |
+| --- | --- |
+| 上传入口 | 拖拽 + 选择（键盘可达）；扩展名白名单与单文件上限（2 GB）预校验，非法类型给出可读原因 |
+| 上传队列 | Zustand 队列，并发 2；进度条（`role=progressbar`）、暂停/继续、取消、失败重试、清理已完成 |
+| 小文件 | `POST /files`（multipart，`file/title/tags`），带上传进度（唯一 XHR 通道，仍复用 client 的 URL/鉴权/错误映射） |
+| 大文件 | >50 MB 自动分片：`POST /uploads` → 8 MB 分片并发 3 → `complete`；分片按 index 重试（30001/40005 不重试直接提示）、会话内续传、整体 sha256 由 WebCrypto 计算 |
+| 列表 | `GET /items?type=file`（契约 13.14）：原始文件名、大小、类型、标签、时间；空/加载/错误态齐全 |
+| 下载 | 带鉴权下载 blob，文件名优先取 `Content-Disposition` 的 RFC 5987 字段；不拼本地路径 |
+| 预览 | 图片/纯文本走 blob + object URL，关闭即 `revokeObjectURL`；其他类型提示下载查看 |
+
+## 8.2 F4 时间轴与标签
 
 | 能力 | 实现 |
 | --- | --- |
@@ -213,7 +225,7 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 
 测试覆盖：分组边界（含跨年 ISO 周）、时区换算、筛选解析与 URL 往返、虚拟窗口区间、1 万条性能用例、页面级筛选/批量打标、批量部分失败重试。
 
-## 8.2 F3 编辑器（笔记 / TeX）
+## 8.3 F3 编辑器（笔记 / TeX）
 
 | 能力 | 实现 |
 | --- | --- |
@@ -246,3 +258,4 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - 检索、AI、提醒、图谱、设置等页面分别由 F6–F11 实现，当前为占位页
 - F3 已切真实 `/items`（B2），并按真实契约验证了创建/正文读写/409 冲突/幂等回放
 - F4 已切真实 `/timeline`、`/tags`（B3），并验证分组/游标/筛选/标签计数/批量关联与解除
+- F5 已切真实 `/files`、`/uploads`（B4），并验证小文件上传/下载（含 Range）/分片乱序重传/缺片校验/会话过期

@@ -2,6 +2,8 @@
 
 /** 小文件上限：超过后走分片上传（契约 6.1） */
 export const SMALL_FILE_LIMIT_BYTES = 50 * 1024 * 1024;
+/** 单文件总上限（契约 6.4，默认 2 GB，可在设置中调整） */
+export const MAX_FILE_LIMIT_BYTES = 2 * 1024 * 1024 * 1024;
 /** 分片大小：契约默认 8 MB，范围 5–20 MB */
 export const CHUNK_SIZE_BYTES = 8 * 1024 * 1024;
 /** 分片并发数：契约建议 3 */
@@ -72,11 +74,11 @@ export function validateFile(
   if (file.size <= 0) {
     return { ok: false, reason: '文件为空' };
   }
-  const maxBytes = options.maxBytes ?? SMALL_FILE_LIMIT_BYTES;
+  const maxBytes = options.maxBytes ?? MAX_FILE_LIMIT_BYTES;
   if (file.size > maxBytes) {
     return {
       ok: false,
-      reason: `文件超过 ${formatSize(maxBytes)}，请使用分片上传`,
+      reason: `文件超过上限 ${formatSize(maxBytes)}`,
     };
   }
   return { ok: true };
@@ -98,4 +100,9 @@ export function previewKindOf(name: string, mimeType?: string | null): 'image' |
     return 'text';
   }
   return 'none';
+}
+
+/** 上传路径规划：小文件单请求、大文件分片（契约 6.1/6.2） */
+export function planUpload(size: number, limit: number = SMALL_FILE_LIMIT_BYTES): 'single' | 'chunked' {
+  return size > limit ? 'chunked' : 'single';
 }

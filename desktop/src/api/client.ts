@@ -29,6 +29,8 @@ export interface RequestOptions {
   body?: unknown;
   /** 纯文本请求体（如 text/plain 正文保存），与 body 互斥 */
   textBody?: string;
+  /** 二进制请求体（分片上传），Content-Type 默认 application/octet-stream */
+  blobBody?: Blob;
   /** 配合 textBody 使用，默认 text/plain; charset=utf-8 */
   contentType?: string;
   formData?: FormData;
@@ -167,6 +169,9 @@ async function performRequest<T>(
   } else if (options.textBody !== undefined) {
     headers['Content-Type'] = options.contentType ?? 'text/plain; charset=utf-8';
     body = options.textBody;
+  } else if (options.blobBody) {
+    headers['Content-Type'] = options.contentType ?? 'application/octet-stream';
+    body = options.blobBody;
   } else if (options.body !== undefined) {
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(options.body);

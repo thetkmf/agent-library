@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
-import { SMALL_FILE_LIMIT_BYTES, formatSize } from './file-validation';
+import { MAX_FILE_LIMIT_BYTES, SMALL_FILE_LIMIT_BYTES, formatSize } from './file-validation';
 
 export interface FileDropZoneProps {
   onFiles: (files: File[]) => void;
@@ -54,7 +54,7 @@ export function FileDropZone({ onFiles, disabled = false, multiple = true }: Fil
       <UploadCloud className="h-6 w-6 text-muted" aria-hidden="true" />
       <p className="text-sm text-content">拖拽文件到这里，或手动选择</p>
       <p className="text-[11px] text-muted">
-        单文件超过 {formatSize(SMALL_FILE_LIMIT_BYTES)} 将自动走分片上传；类型由设置中的白名单决定
+        超过 {formatSize(SMALL_FILE_LIMIT_BYTES)} 自动分片上传（单文件上限 {formatSize(MAX_FILE_LIMIT_BYTES)}）；类型由设置中的白名单决定
       </p>
       <input
         ref={inputRef}

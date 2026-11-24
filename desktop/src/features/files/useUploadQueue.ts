@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { toApiError, userMessageFor } from '@/api/errors';
 import { filesApi, type UploadResult } from '@/api/queries/files';
-import { validateFile, type ValidationResult } from './file-validation';
+import { uploadLargeFile, type UploadInit } from './chunked-upload';
+import { planUpload, validateFile, type ValidationResult } from './file-validation';
 
 export type UploadStatus = 'queued' | 'uploading' | 'paused' | 'done' | 'error' | 'canceled';
 
@@ -15,6 +16,10 @@ export interface UploadTask {
   progress: number;
   error: string | null;
   attempts: number;
+  /** 分片上传会话（本进程内重试续传用，不持久化） */
+  session?: UploadInit | null;
+  /** 已成功的分片下标 */
+  chunksDone?: number[];
 }
 
 export interface UploadRejection {
@@ -68,13 +73,24 @@ export const useUploadQueue = create<UploadQueueState>((set, get) => {
     patch(id, { status: 'uploading', progress: 0, error: null, attempts: task.attempts + 1 });
 
     try {
-      const result = await filesApi.upload(
-        { file: task.file },
-        {
+      let result: UploadResult;
+      if (planUpload(task.file.size) === 'chunked') {
+        result = await uploadLargeFile(task.file, {
           signal: controller.signal,
-          onProgress: (progress) => patch(id, { progress: progress.ratio }),
-        },
-      );
+          session: task.session,
+          done: task.chunksDone,
+          onProgress: (ratio) => patch(id, { progress: ratio }),
+          onState: (state) => patch(id, { session: state.session, chunksDone: state.done }),
+        });
+      } else {
+        result = await filesApi.upload(
+          { file: task.file },
+          {
+            signal: controller.signal,
+            onProgress: (progress) => patch(id, { progress: progress.ratio }),
+          },
+        );
+      }
       patch(id, { status: 'done', progress: 1 });
       uploadedListener?.(result);
     } catch (error) {

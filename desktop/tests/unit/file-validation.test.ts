@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_ALLOWED_EXTENSIONS,
+  MAX_FILE_LIMIT_BYTES,
   SMALL_FILE_LIMIT_BYTES,
   extensionOf,
   formatSize,
@@ -39,11 +40,13 @@ describe('validateFile', () => {
     expect(result.ok).toBe(false);
   });
 
-  it('超过小文件上限时提示分片上传', () => {
-    const result = validateFile({ name: 'a.zip', size: SMALL_FILE_LIMIT_BYTES + 1 });
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.reason).toContain('分片上传');
+  it('超过小文件上限仍允许（由队列改走分片），超过总上限才拒绝', () => {
+    expect(validateFile({ name: 'a.zip', size: SMALL_FILE_LIMIT_BYTES + 1 })).toEqual({ ok: true });
+
+    const tooLarge = validateFile({ name: 'a.zip', size: MAX_FILE_LIMIT_BYTES + 1 });
+    expect(tooLarge.ok).toBe(false);
+    if (!tooLarge.ok) {
+      expect(tooLarge.reason).toContain('超过上限');
     }
   });
 
