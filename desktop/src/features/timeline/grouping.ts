@@ -13,7 +13,7 @@ import type {
   TimelineGroup,
   TimelineGroupBy,
   TimelineItem,
-} from '@/api/contracts/timeline';
+} from '@/api/timeline-types';
 
 const DAY_MS = 86_400_000;
 const WEEK_MS = 7 * DAY_MS;
@@ -177,10 +177,9 @@ export function groupTimelineItems(
       });
     }
   }
-  if (itemCounts) {
-    for (const group of groups.values()) {
-      group.item_count = itemCounts[group.key] ?? group.items.length;
-    }
+  for (const group of groups.values()) {
+    // 有服务端计数时以它为准；否则本页条目数即为该组计数（契约 9.2）
+    group.item_count = itemCounts?.[group.key] ?? group.items.length;
   }
   return [...groups.values()];
 }
@@ -192,8 +191,9 @@ export function compareTimelineItems(left: TimelineItem, right: TimelineItem): n
 }
 
 /**
- * 跨页合并：同 key 的条目去重后拼接，`item_count` 取最大值（服务端总数），
- * 分组按首条目的创建时间倒序排列。前端不解析 key 格式。
+ * 跨页合并：同 key 的条目去重后拼接。
+ * 契约 9.2：`item_count` 是「本页内该分组的条目数」，因此跨页时**累加**；
+ * 分组按首条目的创建时间倒序排列，前端不解析 key 格式。
  */
 export function mergeTimelineGroups(
   pages: ReadonlyArray<ReadonlyArray<TimelineGroup>>,
@@ -218,7 +218,7 @@ export function mergeTimelineGroups(
           existing.items.push(item);
         }
       }
-      existing.item_count = Math.max(existing.item_count, group.item_count);
+      existing.item_count += group.item_count;
       if (group.label.length > 0) {
         existing.label = group.label;
       }

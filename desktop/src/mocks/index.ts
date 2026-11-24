@@ -1,13 +1,12 @@
 import { configureApi, getApiConfig } from '@/api/config';
 import { createMockFetch, MOCK_BASE_URL, type MockRoute } from './router';
-import { tagTimelineMockRoutes } from './timeline';
-
 /**
  * 当前仍需要的 mock 路由。
- * B2（/items）已合入，条目相关 mock 已移除；F4 的 `/timeline`、`/tags`
- * 以及批量关联标签在 B3 合入前由 `src/mocks/timeline.ts` 提供。
+ * B2（`/items`）与 B3（`/timeline`、`/tags`）均已合入，条目/时间轴/标签的
+ * 产品 mock 已移除，仅保留测试夹具（`tests/fixtures/`）。
+ * B4 的 `/files`、`/uploads` 在实现前按 13.6 在此登记。
  */
-export const mockRoutes: MockRoute[] = [...tagTimelineMockRoutes];
+export const mockRoutes: MockRoute[] = [];
 
 /**
  * 是否启用契约 Mock：

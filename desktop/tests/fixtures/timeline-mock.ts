@@ -1,25 +1,20 @@
 /**
- * F4 契约 Mock：`/timeline`、`/tags`、`POST /items/{id}/tags`、
- * `DELETE /items/{id}/tags/{tag_id}`。
+ * 时间轴与标签 Mock —— 仅测试使用的夹具。
  *
- * 依据《开发接口标准》9.2 / 9.3 与《开发过程》13.6；B3 合入后删除本文件、
- * 从 `src/mocks/index.ts` 移除路由，并重跑 `npm run gen:api` 切换真实接口。
- * 这里只做 fetch 层替身，请求仍经过 `src/api/client.ts`。
+ * B3 已合入真实 `/timeline`、`/tags` 契约，产品代码中的 mock 已删除；
+ * 这份数据保留为 F4 的 UI 回归夹具（字段对齐《开发接口标准》9.2 / 9.3）。
+ * 只做 fetch 层替身，请求仍经过 `src/api/client.ts`。
  */
 import type { Item, ItemStatus, ItemType, TagRef } from '@/api/queries/items';
 import type {
   TimelineGroupBy,
   TimelinePage,
   Tag,
-} from '@/api/contracts/timeline';
+} from '@/api/timeline-types';
 import { API_ERROR_CODES } from '@/api/errors';
-import {
-  groupTimelineItems,
-  isValidTimeZone,
-  timelineGroupKey,
-} from '@/features/timeline/grouping';
-import { fail, ok } from './envelope';
-import type { MockResponse, MockRoute } from './router';
+import { groupTimelineItems, isValidTimeZone } from '@/features/timeline/grouping';
+import { fail, ok } from '@/mocks/envelope';
+import type { MockResponse, MockRoute } from '@/mocks/router';
 
 const TAGS: ReadonlyArray<{ id: string; name: string }> = [
   { id: '0199b100-0000-7000-8000-000000000001', name: '机器学习' },
@@ -235,19 +230,9 @@ function listTimeline(searchParams: URLSearchParams): MockResponse {
       return byTime !== 0 ? byTime : right.id.localeCompare(left.id);
     });
 
-  const counts = new Map<string, number>();
-  for (const item of filtered) {
-    const key = timelineGroupKey(item.created_at, rawGroupBy, timeZone);
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
-
   const pageItems = filtered.slice(offset, offset + effectiveLimit);
-  const groups = groupTimelineItems(
-    pageItems,
-    rawGroupBy,
-    timeZone,
-    Object.fromEntries(counts),
-  );
+  // 契约 9.2：item_count 只统计本页内的分组条目数（跨页由前端累加）
+  const groups = groupTimelineItems(pageItems, rawGroupBy, timeZone);
   const hasMore = offset + pageItems.length < filtered.length;
   const page: TimelinePage = {
     groups,

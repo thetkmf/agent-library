@@ -2,7 +2,7 @@
  * 虚拟滚动的纯计算：分组 → 扁平行 → 行位置 → 可见区间。
  * 与 React 解耦，便于单测 10k 条目下的区间计算。
  */
-import type { TimelineGroup, TimelineItem } from '@/api/contracts/timeline';
+import type { TimelineGroup, TimelineItem } from '@/api/timeline-types';
 
 export type TimelineRow =
   | {
@@ -99,6 +99,34 @@ export function findLastVisibleIndex(
       break;
     }
     if (position.top < bottom) {
+      result = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return result;
+}
+
+/** 给定纵向坐标，返回该位置所在的行下标（越界时返回 -1 / 末行）。 */
+export function findRowIndexAt(positions: readonly RowPosition[], y: number): number {
+  if (positions.length === 0 || y < 0) {
+    return -1;
+  }
+  const last = positions[positions.length - 1];
+  if (last && y >= last.top + last.height) {
+    return positions.length - 1;
+  }
+  let low = 0;
+  let high = positions.length - 1;
+  let result = -1;
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const position = positions[mid];
+    if (!position) {
+      break;
+    }
+    if (position.top <= y) {
       result = mid;
       low = mid + 1;
     } else {

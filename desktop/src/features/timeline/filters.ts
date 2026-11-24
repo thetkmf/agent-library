@@ -5,7 +5,7 @@
  * `created_to`、`group_by`），刷新与前进/后退都由 `useSearchParams` 还原。
  * 非法值在这里收敛成可展示错误，页面据此进入错误态而不是发请求。
  */
-import type { TimelineGroupBy } from '@/api/contracts/timeline';
+import type { TimelineGroupBy } from '@/api/timeline-types';
 import type { ItemStatus, ItemType } from '@/api/queries/items';
 import { isValidTimeZone, zonedWallClock } from './grouping';
 
