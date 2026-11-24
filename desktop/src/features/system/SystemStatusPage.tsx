@@ -43,6 +43,13 @@ function ApiSelfCheckPanel({ enabled }: ApiSelfCheckPanelProps): JSX.Element {
     void queryClient.invalidateQueries({ queryKey: queryKeys.system.all });
   };
 
+  const EMBEDDING_STATUS_LABEL: Record<string, string> = {
+    ready: '就绪',
+    missing: '未安装',
+    loading: '加载中',
+    error: '异常',
+  };
+
   const healthLabel = !enabled
     ? '后端未就绪'
     : health.isPending
@@ -91,6 +98,17 @@ function ApiSelfCheckPanel({ enabled }: ApiSelfCheckPanelProps): JSX.Element {
                   ? `${capabilities.data.ai.model} · ${capabilities.data.ai.ready ? '就绪' : '未就绪'}` +
                     ` · Key ${capabilities.data.ai.has_key ? '已配置' : '未配置'}` +
                     ` · 外联 ${capabilities.data.ai.external_calls_enabled ? '已开启' : '未开启'}`
+                  : '—'
+              }
+            />
+            <DetailRow
+              label="嵌入模型"
+              value={
+                capabilities.data
+                  ? `${capabilities.data.embedding.model} · ${capabilities.data.embedding.dimension} 维 · ${
+                      EMBEDDING_STATUS_LABEL[capabilities.data.embedding.status] ??
+                      capabilities.data.embedding.status
+                    }（本地执行）`
                   : '—'
               }
             />

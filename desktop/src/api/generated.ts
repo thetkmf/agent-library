@@ -100,8 +100,25 @@ export interface components {
          */
         CapabilitiesOut: {
             ai: components["schemas"]["AiCapability"];
+            embedding: components["schemas"]["EmbeddingCapability"];
             storage: components["schemas"]["StorageInfo"];
             vector: components["schemas"]["VectorCapability"];
+        };
+        /**
+         * EmbeddingCapability
+         * @description Local embedding model state; embeddings never leave the machine.
+         */
+        EmbeddingCapability: {
+            /** Dimension */
+            dimension: number;
+            /** Model */
+            model: string;
+            /**
+             * Status
+             * @default missing
+             * @enum {string}
+             */
+            status: "ready" | "missing" | "loading" | "error";
         };
         /** Envelope[CapabilitiesOut] */
         Envelope_CapabilitiesOut_: {
