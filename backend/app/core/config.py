@@ -21,6 +21,27 @@ DEFAULT_MODEL_NAME = MODEL_NAMES[0]
 EMBEDDING_MODEL = "bge-small-zh-v1.5"
 EMBEDDING_DIMENSION = 512
 EMBEDDING_STATUSES = ("ready", "missing", "loading", "error")
+DEFAULT_ALLOWED_EXTENSIONS = (
+    "md",
+    "tex",
+    "txt",
+    "pdf",
+    "docx",
+    "pptx",
+    "xlsx",
+    "png",
+    "jpg",
+    "jpeg",
+    "webp",
+    "svg",
+    "mp3",
+    "wav",
+    "mp4",
+    "zip",
+)
+MAX_SMALL_FILE_BYTES = 50 * 1024 * 1024
+MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024
+DEFAULT_CHUNK_SIZE_BYTES = 8 * 1024 * 1024
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
 _LOOPBACK_NAMES = frozenset({"localhost", "::1", "0:0:0:0:0:0:0:1"})
 
@@ -80,6 +101,10 @@ class Settings(BaseSettings):
     # 向量嵌入在本地推理，不走 DeepSeek（见决策记录）
     embedding_model: str = EMBEDDING_MODEL
     embedding_dimension: int = Field(default=EMBEDDING_DIMENSION, ge=1)
+    allowed_extensions: tuple[str, ...] = DEFAULT_ALLOWED_EXTENSIONS
+    max_small_file_bytes: int = Field(default=MAX_SMALL_FILE_BYTES, ge=1)
+    max_file_bytes: int = Field(default=MAX_FILE_BYTES, ge=1)
+    chunk_size_bytes: int = Field(default=DEFAULT_CHUNK_SIZE_BYTES, ge=1024)
 
     @field_validator("host")
     @classmethod
@@ -104,6 +129,22 @@ class Settings(BaseSettings):
         if name not in MODEL_NAMES:
             raise ValueError(f"不支持的模型：{value!r}，仅允许 {', '.join(MODEL_NAMES)}")
         return name
+
+    @field_validator("allowed_extensions")
+    @classmethod
+    def _validate_extensions(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        cleaned: list[str] = []
+        for raw in value:
+            ext = raw.strip().lower().lstrip(".")
+            if not ext:
+                continue
+            if not ext.isalnum():
+                raise ValueError(f"扩展名只能是字母数字：{raw!r}")
+            if ext not in cleaned:
+                cleaned.append(ext)
+        if not cleaned:
+            raise ValueError("allowed_extensions 不能为空")
+        return tuple(cleaned)
 
     @field_validator("token")
     @classmethod

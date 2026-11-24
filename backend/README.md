@@ -48,6 +48,11 @@ python ../scripts/export_openapi.py --check  # 校验契约是否最新
 | DELETE | `/items/{id}/tags/{tag_id}` | 解除单个标签关联 |
 | GET | `/timeline` | 时间轴分组：`from/to`、`group_by=day/week/month`、`tz`、`cursor`、`limit`，并支持 `type/status/tag_id/q`（默认 `status=active`） |
 
+| POST | `/files` | 小文件上传（multipart：`file`/`title`/`tags`），≤50 MB，返回 `{item, file_asset}` |
+| GET | `/files/{asset_id}/download` | 下载/预览：200 或 206（Range）+ `Content-Range` + RFC 5987 文件名 |
+
+上传限制：扩展名白名单（md/tex/txt/pdf/docx/pptx/xlsx/png/jpg/webp/svg/mp3/wav/mp4/zip）、MIME 与扩展名明显不符拒绝、文件名清洗后为空拒绝；超限 `40004`、类型不支持 `40003`；失败整体回滚且不留孤儿文件。
+
 ## 数据层（B1）
 
 - 数据库：SQLite，文件位于 `<PKB_DATA_DIR>/db/pkb.sqlite3`；连接时开启 `foreign_keys`、`WAL`、`busy_timeout`。

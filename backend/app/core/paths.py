@@ -51,6 +51,9 @@ def ensure_layout(settings: Settings) -> DataLayout:
 def sanitize_filename(name: str, *, max_length: int = MAX_FILENAME_LENGTH) -> str:
     """Strip path separators and control characters from a user supplied filename."""
     cleaned = "".join("-" if ch in _FORBIDDEN_CHARS or ch in "/\\" else ch for ch in name)
+    # 中和上级目录序列，避免文件名里残留 ".."
+    while ".." in cleaned:
+        cleaned = cleaned.replace("..", ".")
     cleaned = cleaned.strip(" .")
     if not cleaned:
         raise illegal_path("文件名不合法")
