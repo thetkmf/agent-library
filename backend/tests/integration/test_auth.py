@@ -51,9 +51,14 @@ def test_capabilities_payload(client: TestClient, auth_headers: dict[str, str]) 
     assert data["ai"]["has_key"] is False
     assert data["ai"]["external_calls_enabled"] is False
     assert data["ai"]["ready"] is False
+    assert data["embedding"] == {
+        "model": "bge-small-zh-v1.5",
+        "dimension": 512,
+        "status": "missing",
+    }
     assert data["vector"] == {"ready": False, "indexed_count": 0}
     assert data["storage"]["free_bytes"] > 0
-    assert set(data) == {"ai", "vector", "storage"}
+    assert set(data) == {"ai", "embedding", "vector", "storage"}
 
 
 def test_missing_token_not_configured(tmp_path) -> None:

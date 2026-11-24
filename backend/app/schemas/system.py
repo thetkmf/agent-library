@@ -36,6 +36,14 @@ class AiCapability(BaseModel):
     ready: bool = False
 
 
+class EmbeddingCapability(BaseModel):
+    """Local embedding model state; embeddings never leave the machine."""
+
+    model: str
+    dimension: int
+    status: Literal["ready", "missing", "loading", "error"] = "missing"
+
+
 class VectorCapability(BaseModel):
     ready: bool = False
     indexed_count: int = 0
@@ -49,5 +57,6 @@ class CapabilitiesOut(BaseModel):
     """What the local installation can currently do."""
 
     ai: AiCapability
+    embedding: EmbeddingCapability
     vector: VectorCapability
     storage: StorageInfo

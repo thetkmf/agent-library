@@ -18,6 +18,9 @@ MODEL_PROVIDER = "deepseek"
 MODEL_BASE_URL = "https://api.deepseek.com"
 MODEL_NAMES = ("deepseek-chat", "deepseek-reasoner")
 DEFAULT_MODEL_NAME = MODEL_NAMES[0]
+EMBEDDING_MODEL = "bge-small-zh-v1.5"
+EMBEDDING_DIMENSION = 512
+EMBEDDING_STATUSES = ("ready", "missing", "loading", "error")
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
 _LOOPBACK_NAMES = frozenset({"localhost", "::1", "0:0:0:0:0:0:0:1"})
 
@@ -74,6 +77,9 @@ class Settings(BaseSettings):
     slow_request_ms: int = Field(default=1000, ge=0)
     privacy_allow_external_calls: bool = False
     model_name: str = DEFAULT_MODEL_NAME
+    # 向量嵌入在本地推理，不走 DeepSeek（见决策记录）
+    embedding_model: str = EMBEDDING_MODEL
+    embedding_dimension: int = Field(default=EMBEDDING_DIMENSION, ge=1)
 
     @field_validator("host")
     @classmethod

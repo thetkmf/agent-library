@@ -42,6 +42,9 @@
           "ai": {
             "$ref": "#/components/schemas/AiCapability"
           },
+          "embedding": {
+            "$ref": "#/components/schemas/EmbeddingCapability"
+          },
           "storage": {
             "$ref": "#/components/schemas/StorageInfo"
           },
@@ -51,10 +54,41 @@
         },
         "required": [
           "ai",
+          "embedding",
           "vector",
           "storage"
         ],
         "title": "CapabilitiesOut",
+        "type": "object"
+      },
+      "EmbeddingCapability": {
+        "description": "Local embedding model state; embeddings never leave the machine.",
+        "properties": {
+          "dimension": {
+            "title": "Dimension",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "status": {
+            "default": "missing",
+            "enum": [
+              "ready",
+              "missing",
+              "loading",
+              "error"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "dimension"
+        ],
+        "title": "EmbeddingCapability",
         "type": "object"
       },
       "Envelope_CapabilitiesOut_": {
