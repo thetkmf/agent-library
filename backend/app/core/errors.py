@@ -114,12 +114,14 @@ class AppError(Exception):
         *,
         http_status: int | None = None,
         details: dict[str, Any] | None = None,
+        data: Any = None,
     ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
         self.http_status = http_status if http_status is not None else HTTP_STATUS_BY_CODE[code]
         self.details = details
+        self.data = data
 
 
 def not_found(message: str = "资源不存在", *, details: dict[str, Any] | None = None) -> AppError:
@@ -137,6 +139,28 @@ def validation_failed(
 ) -> AppError:
     """Build a 40001 error."""
     return AppError(ErrorCode.VALIDATION_FAILED, message, details=details)
+
+
+def version_conflict(message: str = "版本冲突，请刷新后重试", *, data: Any = None) -> AppError:
+    """Build a 30003 error carrying the server-side current resource in `data`."""
+    return AppError(ErrorCode.VERSION_CONFLICT, message, data=data)
+
+
+def already_exists(
+    message: str = "资源已存在", *, details: dict[str, Any] | None = None
+) -> AppError:
+    """Build a 30002 error."""
+    return AppError(ErrorCode.ALREADY_EXISTS, message, details=details)
+
+
+def gone(message: str = "资源已删除") -> AppError:
+    """Build a 30004 error."""
+    return AppError(ErrorCode.GONE, message)
+
+
+def unsupported_query(message: str = "不支持的排序或过滤") -> AppError:
+    """Build a 40002 error."""
+    return AppError(ErrorCode.UNSUPPORTED_QUERY, message)
 
 
 def illegal_path(message: str = "路径非法") -> AppError:
@@ -161,7 +185,7 @@ def _log_failure(request: Request, code: ErrorCode, status: int) -> None:
 async def _handle_app_error(request: Request, exc: Exception) -> JSONResponse:
     error = cast(AppError, exc)
     _log_failure(request, error.code, error.http_status)
-    content = error_envelope(error.code, error.message, error.details)
+    content = error_envelope(error.code, error.message, error.details, error.data)
     return JSONResponse(status_code=error.http_status, content=content)
 
 
