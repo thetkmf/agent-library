@@ -29,6 +29,8 @@ export interface RequestOptions {
   body?: unknown;
   /** 纯文本请求体（如 text/plain 正文保存），与 body 互斥 */
   textBody?: string;
+  /** 二进制请求体（分片上传），Content-Type 默认 application/octet-stream */
+  blobBody?: Blob;
   /** 配合 textBody 使用，默认 text/plain; charset=utf-8 */
   contentType?: string;
   formData?: FormData;
@@ -167,6 +169,9 @@ async function performRequest<T>(
   } else if (options.textBody !== undefined) {
     headers['Content-Type'] = options.contentType ?? 'text/plain; charset=utf-8';
     body = options.textBody;
+  } else if (options.blobBody) {
+    headers['Content-Type'] = options.contentType ?? 'application/octet-stream';
+    body = options.blobBody;
   } else if (options.body !== undefined) {
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(options.body);
@@ -302,3 +307,175 @@ export const api = {
   delete: <T,>(path: string, options: Omit<RequestOptions, 'method' | 'body'> = {}) =>
     apiRequest<T>(path, { ...options, method: 'DELETE' }),
 };
+
+// ---------------------------------------------------------------------------
+// 文件上传 / 下载
+// 上传需要进度，fetch 无法读取上传进度，因此这是唯一的 XHR 通道；
+// 但 URL、鉴权头、信封解包与错误映射与 apiRequest 完全一致。
+// ---------------------------------------------------------------------------
+
+export interface UploadProgress {
+  loaded: number;
+  total: number;
+  /** 0–1，total 未知时为 0 */
+  ratio: number;
+}
+
+export interface UploadOptions {
+  formData: FormData;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  onProgress?: (progress: UploadProgress) => void;
+}
+
+export function apiUpload<T>(path: string, options: UploadOptions): Promise<T> {
+  const config = getApiConfig();
+  const url = buildUrl(path);
+  const timeoutMs = options.timeoutMs ?? AI_TIMEOUT_MS;
+
+  return new Promise<T>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const fail = (error: unknown): void => reject(toApiError(error));
+
+    xhr.open('POST', url, true);
+    xhr.timeout = timeoutMs;
+    xhr.responseType = 'text';
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.setRequestHeader('X-Request-Id', crypto.randomUUID());
+    if (config.token.length > 0) {
+      xhr.setRequestHeader('Authorization', `Bearer ${config.token}`);
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (!options.onProgress) {
+        return;
+      }
+      const total = event.lengthComputable ? event.total : 0;
+      options.onProgress({
+        loaded: event.loaded,
+        total,
+        ratio: total > 0 ? Math.min(1, event.loaded / total) : 0,
+      });
+    };
+
+    xhr.onerror = () =>
+      fail(new ApiError({ kind: 'network', code: 'NETWORK_ERROR', message: '上传失败，请检查本地后端' }));
+    xhr.ontimeout = () =>
+      fail(
+        new ApiError({
+          kind: 'timeout',
+          code: 'TIMEOUT',
+          message: `上传超时（${Math.round(timeoutMs / 1000)} 秒）`,
+        }),
+      );
+    xhr.onabort = () =>
+      fail(new ApiError({ kind: 'aborted', code: 'ABORTED', message: '上传已取消' }));
+
+    xhr.onload = () => {
+      const payload = parseJson(xhr.responseText ?? '');
+      if (xhr.status >= 200 && xhr.status < 300) {
+        if (isEnvelope(payload)) {
+          if (payload.code !== 0) {
+            reject(errorFromPayload(payload, xhr.status));
+            return;
+          }
+          resolve(payload.data as T);
+          return;
+        }
+        resolve(payload as T);
+        return;
+      }
+      reject(errorFromPayload(payload, xhr.status));
+    };
+
+    const onAbort = (): void => xhr.abort();
+    if (options.signal?.aborted) {
+      reject(new ApiError({ kind: 'aborted', code: 'ABORTED', message: '上传已取消' }));
+      return;
+    }
+    options.signal?.addEventListener('abort', onAbort, { once: true });
+
+    xhr.send(options.formData);
+    xhr.onloadend = () => options.signal?.removeEventListener('abort', onAbort);
+  });
+}
+
+/** 从 `Content-Disposition` 解析文件名，优先 RFC 5987 的 `filename*` */
+export function parseContentDispositionFilename(header: string | null): string | null {
+  if (!header) {
+    return null;
+  }
+  const encoded = /filename\*=(?:UTF-8'')?([^;]+)/i.exec(header);
+  if (encoded?.[1]) {
+    try {
+      return decodeURIComponent(encoded[1].trim().replace(/^"|"$/g, ''));
+    } catch {
+      return encoded[1].trim().replace(/^"|"$/g, '');
+    }
+  }
+  const plain = /filename="?([^";]+)"?/i.exec(header);
+  return plain?.[1] ? plain[1].trim() : null;
+}
+
+export interface DownloadResult {
+  blob: Blob;
+  filename: string | null;
+  contentType: string | null;
+  status: number;
+}
+
+/** 下载二进制（带鉴权）；错误仍按统一信封解析为 ApiError */
+export async function apiDownload(
+  path: string,
+  options: { signal?: AbortSignal; timeoutMs?: number; range?: string } = {},
+): Promise<DownloadResult> {
+  const config = getApiConfig();
+  const url = buildUrl(path);
+  const controller = new AbortController();
+  let timedOut = false;
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+  const onCallerAbort = (): void => controller.abort();
+  options.signal?.addEventListener('abort', onCallerAbort, { once: true });
+
+  const headers: Record<string, string> = {
+    Accept: '*/*',
+    'X-Request-Id': crypto.randomUUID(),
+  };
+  if (config.token.length > 0) {
+    headers['Authorization'] = `Bearer ${config.token}`;
+  }
+  if (options.range) {
+    headers['Range'] = options.range;
+  }
+
+  try {
+    const response = await config.fetchImpl(url, { method: 'GET', headers, signal: controller.signal });
+    if (!response.ok) {
+      throw errorFromPayload(parseJson(await response.text()), response.status);
+    }
+    return {
+      blob: await response.blob(),
+      filename: parseContentDispositionFilename(response.headers.get('Content-Disposition')),
+      contentType: response.headers.get('Content-Type'),
+      status: response.status,
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    if (timedOut) {
+      throw new ApiError({ kind: 'timeout', code: 'TIMEOUT', message: '下载超时，请重试', cause: error });
+    }
+    if (controller.signal.aborted) {
+      throw new ApiError({ kind: 'aborted', code: 'ABORTED', message: '下载已取消', cause: error });
+    }
+    throw toApiError(error);
+  } finally {
+    clearTimeout(timer);
+    options.signal?.removeEventListener('abort', onCallerAbort);
+  }
+}

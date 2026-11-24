@@ -3,6 +3,7 @@ import {
   Bell,
   BookOpen,
   Clock,
+  FolderOpen,
   GraduationCap,
   Home,
   ListChecks,
@@ -46,6 +47,14 @@ export const NAV_SECTIONS: NavSection[] = [
         stage: 'ready',
       },
       {
+        id: 'files',
+        path: '/files',
+        label: '文件',
+        description: '上传、预览与下载本地文件',
+        icon: FolderOpen,
+        stage: 'ready',
+      },
+      {
         id: 'timeline',
         path: '/timeline',
         label: '时间轴',
@@ -59,8 +68,7 @@ export const NAV_SECTIONS: NavSection[] = [
         label: '检索',
         description: '关键词、语义与混合检索',
         icon: Search,
-        stage: 'planned',
-        milestone: 'M2',
+        stage: 'ready',
       },
       {
         id: 'graph',
