@@ -59,3 +59,12 @@ def test_ensure_layout_creates_directories(tmp_path: Path) -> None:
     assert layout.logs_dir.is_dir()
     assert layout.cache_dir.is_dir()
     assert build_layout(Settings(data_dir=tmp_path / "data", _env_file=None)) == layout
+
+
+@pytest.mark.parametrize("name", ["CON.md", "nul.txt", "COM1", "lpt9.md"])
+def test_sanitize_filename_escapes_windows_reserved_names(name: str) -> None:
+    assert sanitize_filename(name).startswith("_")
+
+
+def test_sanitize_filename_keeps_normal_names() -> None:
+    assert sanitize_filename("console.md") == "console.md"

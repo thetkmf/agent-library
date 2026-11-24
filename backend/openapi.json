@@ -1235,7 +1235,7 @@
     },
     "/api/v1/files/{asset_id}/download": {
       "get": {
-        "description": "Stream a stored file honouring a single Range request.",
+        "description": "Stream a stored file, honouring a single Range request.",
         "operationId": "download_file_api_v1_files__asset_id__download_get",
         "parameters": [
           {

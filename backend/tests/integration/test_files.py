@@ -227,3 +227,74 @@ def test_upload_rollback_leaves_no_orphan_file(
         factory = app.state.session_factory
         with factory() as session:
             assert session.scalars(select(Item)).all() == []
+
+
+def test_windows_reserved_names_are_escaped(
+    client: TestClient, auth_headers: dict[str, str], settings: Settings
+) -> None:
+    for name in ("CON.md", "NUL.txt", "com1.txt"):
+        status, body = upload(client, auth_headers, filename=name)
+        assert status == 201, (name, body)
+        asset = body["data"]["file_asset"]
+        assert asset["original_name"].startswith("_")
+        assert asset["size_bytes"] == len(MARKDOWN)
+
+    saved = [path for path in (settings.data_dir / "files").rglob("*.md") if path.is_file()]
+    assert saved and all(path.stat().st_size > 0 for path in saved)
+
+
+def test_text_mime_family_is_enforced(client: TestClient, auth_headers: dict[str, str]) -> None:
+    rejected = upload(client, auth_headers, filename="笔记.md", mime="application/pdf")
+    assert rejected[0] == 415
+    assert rejected[1]["code"] == 40003
+
+    accepted_text = upload(
+        client, auth_headers, filename="纯文本.txt", content=b"abc", mime="text/plain"
+    )
+    assert accepted_text[0] == 201
+
+    accepted_binary = upload(
+        client, auth_headers, filename="未知.md", content=b"abc", mime="application/octet-stream"
+    )
+    assert accepted_binary[0] == 201
+
+
+def test_download_streams_instead_of_reading_whole_file(
+    client: TestClient, auth_headers: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    payload = b"x" * (3 * 1024 * 1024)
+    _, body = upload(
+        client, auth_headers, filename="大文件.txt", content=payload, mime="text/plain"
+    )
+    asset = body["data"]["file_asset"]
+
+    def boom(self: Path) -> bytes:
+        raise AssertionError("下载不应整文件读入内存")
+
+    monkeypatch.setattr(Path, "read_bytes", boom)
+    full = client.get(f"/api/v1/files/{asset['id']}/download", headers=auth_headers)
+    assert full.status_code == 200
+    assert len(full.content) == len(payload)
+
+    head = client.get(
+        f"/api/v1/files/{asset['id']}/download",
+        headers={**auth_headers, "Range": "bytes=0-1023"},
+    )
+    assert head.status_code == 206
+    assert len(head.content) == 1024
+
+
+def test_disk_full_maps_to_storage_full(
+    client: TestClient, auth_headers: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import app.services.storage as storage_module
+
+    class Usage:
+        total = 10
+        used = 10
+        free = 0
+
+    monkeypatch.setattr(storage_module.shutil, "disk_usage", lambda _path: Usage())
+    status, body = upload(client, auth_headers)
+    assert status == 507
+    assert body["code"] == 60002

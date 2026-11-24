@@ -35,7 +35,7 @@ class DownloadRange:
         return self.end - self.start + 1
 
 
-def _file_out(asset: FileAsset) -> FileAssetOut:
+def file_asset_out(asset: FileAsset) -> FileAssetOut:
     return FileAssetOut(
         id=asset.id,
         original_name=asset.original_name,
@@ -63,6 +63,7 @@ def create_file_item(
     chunks: Iterable[bytes],
     title: str | None = None,
     tags: list[str] | None = None,
+    max_bytes: int | None = None,
 ) -> UploadResult:
     """Store the bytes then create item + file asset in one transaction."""
     storage = StorageService(settings)
@@ -71,7 +72,7 @@ def create_file_item(
         filename=filename,
         mime_type=declared_mime,
         chunks=chunks,
-        max_bytes=settings.max_small_file_bytes,
+        max_bytes=max_bytes if max_bytes is not None else settings.max_small_file_bytes,
     )
 
     resolved_title = (title or "").strip() or stored.original_name
@@ -115,7 +116,7 @@ def create_file_item(
         assert reloaded.file_asset is not None
         return UploadResult(
             item=to_item_out(reloaded),
-            file_asset=_file_out(reloaded.file_asset),
+            file_asset=file_asset_out(reloaded.file_asset),
         )
     except Exception:
         session.rollback()
