@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 
-import importlib
 import json
 from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass, field
@@ -22,8 +21,6 @@ from ..core.logging import get_logger
 
 logger = get_logger("pkb.llm")
 
-KEYRING_SERVICE = "pkb-deepseek"
-KEYRING_USERNAME = "api_key"
 CHAT_PATH = "/chat/completions"
 
 
@@ -60,15 +57,9 @@ def resolve_api_key(settings: Settings) -> str | None:
     if settings.deepseek_api_key:
         value = settings.deepseek_api_key.strip()
         return value or None
-    try:
-        keyring = importlib.import_module("keyring")
-    except Exception:  # pragma: no cover - keyring 缺失时视为无 Key
-        return None
-    try:
-        value = keyring.get_password(KEYRING_SERVICE, KEYRING_USERNAME)
-    except Exception:  # pragma: no cover - 凭据后端异常时不阻塞启动
-        return None
-    return str(value) if value else None
+    from .credentials import get_api_key
+
+    return get_api_key()
 
 
 def ensure_model_ready(settings: Settings, api_key: str | None) -> None:

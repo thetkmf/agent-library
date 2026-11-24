@@ -96,6 +96,15 @@ Agent 约定：Key 从 `PKB_DEEPSEEK_API_KEY` 或 Windows 凭据管理器读取�
 | POST/PATCH/DELETE | `/learning/plans/{id}/milestones`、`/learning/milestones/{id}` | 里程碑增改删，任何变更让所属计划 `version+1`；`status=done` 强制 100% 并记 `completed_at`，100% 自动 done，0<进度<100 且未给状态置 `in_progress`，重开清空 `completed_at` |
 | GET | `/learning/progress` | `{total_plans,active_plans,done_plans,completion_rate,milestone_total,milestone_done,streak_days,updated_at}` |
 
+| GET | `/graph` | `center_id`（条目或节点 id）+ `depth`（1–4，默认 2）+ `types` + `limit`（默认 500，最大 2000）；无中心时按 `weight DESC,id ASC` 截断 |
+| GET | `/graph/neighbors/{item_id}` | 条目节点及其直接邻居；条目不存在 404，无节点返回空图 |
+| GET | `/graph/stats` | `{node_count,edge_count,isolated_node_count,updated_at}` |
+| GET/PATCH | `/settings` | 嵌套非敏感配置；`PATCH` 可改 `model.name`、`model.api_key`（只写）、`ui.theme`、`privacy.allow_external_calls`、`ai.auto_organize_enabled`；改 `provider/base_url/embedding/storage` → 40002；Key 只回 `has_key` |
+| POST | `/settings/test-model` | 需已配 Key 且允许外联（否则 409 + 50001），返回 `{ok,model,latency_ms}` |
+| GET/PATCH | `/profile` | 基础资料 `{display_name,bio,timezone,preferred_style,updated_at}`；非法时区 40002 |
+
+密钥：DeepSeek Key 只存 Windows 凭据管理器（service `pkb-deepseek`），不写库、不进日志；凭据后端不可用时退化为进程内存储（仅本次运行）。
+
 ## 向量（B5a）
 
 - 依赖：`chromadb`（持久化，数据目录 `chroma/`）、`fastembed` + `onnxruntime`（本地推理 `bge-small-zh-v1.5`，512 维）。

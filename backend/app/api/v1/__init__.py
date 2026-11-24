@@ -9,11 +9,13 @@ from . import (
     ai,
     events,
     files,
+    graph,
     index,
     items,
     learning,
     reminders,
     search,
+    settings,
     system,
     tags,
     timeline,
@@ -33,3 +35,5 @@ api_router.include_router(ai.router)
 api_router.include_router(reminders.router)
 api_router.include_router(events.router)
 api_router.include_router(learning.router)
+api_router.include_router(graph.router)
+api_router.include_router(settings.router)

@@ -23,10 +23,12 @@ from .services.agent import AgentService
 from .services.ai_tasks import AiTaskService
 from .services.embedding import EmbeddingService
 from .services.events import EventBus
+from .services.graph import GraphService
 from .services.indexing import IndexService
 from .services.learning import LearningService
 from .services.reminders import ReminderScheduler, ReminderService
 from .services.search import SearchService
+from .services.settings_store import SettingsStore
 from .services.uploads import cleanup_expired
 from .services.vector_store import MemoryVectorStore, build_vector_store
 
@@ -74,6 +76,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.event_bus = event_bus
     app.state.reminder_service = reminder_service
     app.state.learning_service = LearningService(settings, session_factory)
+    app.state.graph_service = GraphService(settings, session_factory)
+    app.state.settings_store = SettingsStore(settings, session_factory, embedding_service)
     reminder_scheduler: ReminderScheduler | None = None
     if settings.reminder_scheduler_enabled:
         reminder_scheduler = ReminderScheduler(
