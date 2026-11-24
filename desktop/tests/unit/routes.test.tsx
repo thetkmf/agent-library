@@ -48,6 +48,8 @@ describe('AppRoutes', () => {
       );
       if (item.id === 'notes') {
         expect(screen.getByRole('heading', { name: '全部条目' })).toBeInTheDocument();
+      } else if (item.id === 'timeline') {
+        expect(screen.getByRole('button', { name: '批量操作' })).toBeInTheDocument();
       } else if (item.stage === 'ready') {
         expect(screen.getByRole('region', { name: '本地后端' })).toBeInTheDocument();
       } else {

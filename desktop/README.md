@@ -171,11 +171,11 @@ desktop/
 | SSE | 网络中断按 1s→2s→4s…（≤15s）重连，最多 5 次；**服务端正常关闭视为完成不重连**；`terminalEvents`（如 `message.completed`）命中后主动结束；页面隐藏时暂停重连 |
 | 未就绪 | 后端未启动时 `kind: 'unavailable'`，不发请求 |
 
-## 7.1 契约 Mock（F4–F5 前置）
+## 7.1 契约 Mock（F5 前置）
 
-`/items` 已由 B2 产出并切到真实接口；条目 mock 已移出产品代码，仅保留为
-UI 回归测试夹具（`tests/fixtures/items-mock.ts`）。`/timeline`、`/tags`、`/files`
-等 B3/B4 接口未产出前，仍按《开发过程》13.6 用 mock 驱动：
+`/items`（B2）、`/timeline`、`/tags`（B3）已切真实接口，对应 mock 已移出产品代码，
+仅保留为 UI 回归测试夹具（`tests/fixtures/`）。`/files`、`/uploads`（B4）未产出前，
+仍按《开发过程》13.6 用 mock 驱动：
 
 ```bash
 VITE_USE_MOCKS=1 npm run dev          # 开发态启用
@@ -197,7 +197,22 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - [x] 可访问性：跳转主内容链接、`aria-current`、`role=alert`、`aria-busy`、`prefers-reduced-motion`
 - [x] 测试：新增 store / Sidebar / 路由 / 状态组件测试，合计 47 项
 
-## 8.1 F3 编辑器（笔记 / TeX）
+## 8.1 F4 时间轴与标签
+
+| 能力 | 实现 |
+| --- | --- |
+| 分组 | 日 / 周 / 月（ISO 周），按 `tz` 的墙上时间切分；分组标题吸顶（该组标题滚出视口后才显示吸顶条） |
+| 虚拟滚动 | `useVirtualWindow` 固定行高 + 二分定位，只渲染可见区间 ± overscan；1 万条（约 101 万行）下窗口 < 20 行 |
+| 分页 | `useInfiniteQuery` 游标分页，滚动接近底部自动加载，也可点「加载更多」；跨页同 key 合并、`item_count` 累加（契约 9.2） |
+| 筛选 | `type`（可重复）/`status`/`tag_id`/`q`（400ms 防抖）/`created_from`/`created_to`/`group_by`，全部同步到 URL；非法值进入错误态且不发请求 |
+| 时区 | 本地 IANA 时区；日期边界按本地 0 点换算成 UTC（`from` 含头、`to` 含尾），覆盖跨年/跨月/ISO 周年边界 |
+| 标签 | 标签下拉（含 `item_count`）、按标签筛选、批量添加/移除（逐条调用契约接口） |
+| 批量容错 | 逐条调用后汇总 `succeeded/failed`；部分失败只保留失败项，可一键重试 |
+| 卡片 | 类型徽标、标题、预览、标签、本地时间；点击进入 `/notes/:id`；选择模式下显示复选框避免误跳转 |
+
+测试覆盖：分组边界（含跨年 ISO 周）、时区换算、筛选解析与 URL 往返、虚拟窗口区间、1 万条性能用例、页面级筛选/批量打标、批量部分失败重试。
+
+## 8.2 F3 编辑器（笔记 / TeX）
 
 | 能力 | 实现 |
 | --- | --- |
@@ -229,3 +244,4 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - 接口类型当前覆盖系统接口与 B2 的 `/items`；后续 B3–B12 完成后重跑 `npm run gen:api` 扩展（B13 固化）
 - 检索、AI、提醒、图谱、设置等页面分别由 F6–F11 实现，当前为占位页
 - F3 已切真实 `/items`（B2），并按真实契约验证了创建/正文读写/409 冲突/幂等回放
+- F4 已切真实 `/timeline`、`/tags`（B3），并验证分组/游标/筛选/标签计数/批量关联与解除

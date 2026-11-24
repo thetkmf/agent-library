@@ -51,8 +51,7 @@ export const NAV_SECTIONS: NavSection[] = [
         label: '时间轴',
         description: '按日 / 周 / 月分组的浏览与筛选',
         icon: Clock,
-        stage: 'planned',
-        milestone: 'M1',
+        stage: 'ready',
       },
       {
         id: 'search',

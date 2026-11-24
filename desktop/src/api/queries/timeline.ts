@@ -9,37 +9,53 @@ import type {
   AttachTagsRequest,
   Tag,
   TimelinePage,
-} from '@/api/contracts/timeline';
+} from '@/api/timeline-types';
 import { userMessageFor } from '@/api/errors';
 import { queryKeys } from '@/api/keys';
 import type { TimelineRequest } from '@/features/timeline/filters';
 
 /**
- * F4 数据源：`/timeline` 与 `/tags`（B3 尚未合入，当前由 src/mocks 提供）。
+ * F4 数据源：`/timeline` 与 `/tags`（B3 已合入，走真实接口）。
  * 请求一律走 `apiRequest`（client.ts），信封、超时、错误映射保持一致。
- * 契约类型集中在 `src/api/contracts/timeline.ts`，B3 合入后替换为 generated。
+ * 返回类型经 `src/api/timeline-types.ts` 归一化（生成的字段可选）。
  */
+import type { components } from '@/api/generated';
 
 export interface TimelinePageQuery extends TimelineRequest {
   cursor?: string;
 }
 
+function normalizeTimelinePage(page: components['schemas']['TimelineOut']): TimelinePage {
+  return {
+    groups: (page.groups ?? []).map((group) => ({
+      key: group.key,
+      label: group.label,
+      item_count: group.item_count,
+      items: group.items ?? [],
+    })),
+    next_cursor: page.next_cursor ?? null,
+    has_more: page.has_more ?? false,
+  };
+}
+
 export const timelineApi = {
-  list: (query: TimelinePageQuery): Promise<TimelinePage> =>
-    apiRequest<TimelinePage>('/timeline', {
-      query: {
-        group_by: query.group_by,
-        tz: query.tz,
-        from: query.from,
-        to: query.to,
-        type: query.type,
-        status: query.status,
-        tag_id: query.tag_id,
-        q: query.q,
-        cursor: query.cursor,
-        limit: query.limit,
-      },
-    }),
+  list: async (query: TimelinePageQuery): Promise<TimelinePage> =>
+    normalizeTimelinePage(
+      await apiRequest<components['schemas']['TimelineOut']>('/timeline', {
+        query: {
+          group_by: query.group_by,
+          tz: query.tz,
+          from: query.from,
+          to: query.to,
+          type: query.type,
+          status: query.status,
+          tag_id: query.tag_id,
+          q: query.q,
+          cursor: query.cursor,
+          limit: query.limit,
+        },
+      }),
+    ),
 };
 
 export function useTimelineInfinite(
@@ -59,7 +75,7 @@ export function useTimelineInfinite(
 }
 
 export const tagsApi = {
-  list: (): Promise<Tag[]> => apiRequest<Tag[]>('/tags'),
+  list: async (): Promise<Tag[]> => (await apiRequest<Tag[] | null>('/tags')) ?? [],
   attach: (itemId: string, tagIds: string[]): Promise<unknown> => {
     const body: AttachTagsRequest = { tag_ids: tagIds };
     return apiRequest<unknown>(`/items/${encodeURIComponent(itemId)}/tags`, {
