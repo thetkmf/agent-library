@@ -255,6 +255,7 @@ def update_item(
         if not title:
             raise validation_failed("标题不能为空")
         values["title"] = title
+        values["embedding_status"] = "pending"
     if payload.status is not None:
         values["status"] = payload.status
         if payload.status == "trashed" and item.deleted_at is None:
@@ -285,12 +286,14 @@ def update_item(
     return to_item_out(updated)
 
 
-def delete_item(session: Session, item_id: str) -> ItemOut:
-    """Soft delete: move the item into the recycle bin."""
+def delete_item(session: Session, item_id: str, *, vector_store: Any = None) -> ItemOut:
+    """Soft delete: move the item into the recycle bin and drop its vectors."""
     item = _load_or_404(session, item_id)
     if item.deleted_at is None:
         repo.mark_deleted(session, item)
     session.commit()
+    if vector_store is not None:
+        vector_store.delete_item(item_id)
     session.refresh(item)
     return to_item_out(item)
 

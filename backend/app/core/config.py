@@ -104,6 +104,20 @@ class Settings(BaseSettings):
     slow_request_ms: int = Field(default=1000, ge=0)
     privacy_allow_external_calls: bool = False
     model_name: str = DEFAULT_MODEL_NAME
+    # DeepSeek 凭据：优先环境变量，其次 Windows 凭据管理器（见 services/llm.resolve_api_key）
+    deepseek_api_key: str | None = Field(default=None, repr=False)
+    llm_connect_timeout_s: float = Field(default=10.0, gt=0)
+    llm_read_timeout_s: float = Field(default=120.0, gt=0)
+    agent_tool_rounds: int = Field(default=4, ge=1, le=8)
+    agent_max_context_items: int = Field(default=20, ge=0, le=50)
+    agent_max_citations: int = Field(default=10, ge=1, le=50)
+    agent_sse_heartbeat_s: float = Field(default=15.0, gt=0)
+    agent_history_messages: int = Field(default=20, ge=1, le=100)
+    agent_tool_content_chars: int = Field(default=4000, ge=200, le=20000)
+    # 提醒调度（APScheduler 进程内）
+    timezone: str = "Asia/Shanghai"
+    reminder_scheduler_enabled: bool = True
+    reminder_scan_interval_s: int = Field(default=60, ge=10, le=3600)
     # 向量嵌入在本地推理，不走 DeepSeek（见决策记录）
     embedding_model: str = EMBEDDING_MODEL
     embedding_dimension: int = Field(default=EMBEDDING_DIMENSION, ge=1)
@@ -114,6 +128,8 @@ class Settings(BaseSettings):
     # 向量嵌入（本地推理，不经过 DeepSeek）
     embedding_model_dir: Path | None = None
     embedding_model_sha256: str | None = None
+    # 首次部署时允许后台下载/加载本地模型（默认关，避免测试与离线环境即发外联）
+    embedding_auto_warmup: bool = False
     embedding_batch_size: int = Field(default=EMBEDDING_BATCH_SIZE, ge=1, le=256)
     embedding_max_workers: int = Field(default=EMBEDDING_MAX_WORKERS, ge=1, le=8)
     chunk_chars: int = Field(default=CHUNK_SIZE_CHARS, ge=100, le=4000)

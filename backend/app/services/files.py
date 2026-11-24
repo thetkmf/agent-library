@@ -18,6 +18,7 @@ from ..schemas.files import UploadResult
 from ..schemas.items import FileAssetOut, ItemOut
 from .items import to_item_out
 from .storage import StorageService
+from .text_extraction import is_extractable_filename
 
 TITLE_MAX_LENGTH = 200
 _RANGE_PATTERN = re.compile(r"^bytes=(\d*)-(\d*)$")
@@ -98,7 +99,9 @@ def create_file_item(
             preview="",
             status="active",
             version=1,
-            embedding_status="skipped",
+            embedding_status=(
+                "pending" if is_extractable_filename(stored.original_name) else "skipped"
+            ),
         )
         asset = FileAsset(
             item=item,

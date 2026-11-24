@@ -163,6 +163,7 @@ def mark_restored(session: Session, item: Item) -> Item:
     """Restore an item from the recycle bin."""
     item.deleted_at = None
     item.status = "active"
+    item.embedding_status = "pending"
     item.version += 1
     item.updated_at = utcnow()
     session.flush()

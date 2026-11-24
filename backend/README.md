@@ -59,6 +59,52 @@ python ../scripts/export_openapi.py --check  # 校验契约是否最新
 
 分片默认 8 MB（5–20 MB 可配），会话 24 小时过期（`30001`），缺片/校验失败 `40005`，启动时清理过期会话。
 
+| POST | `/index/reindex` | `{"mode": "incremental"|"full"}` → 202 `{task_id,type,status,progress}`；已有任务 409 + 30002（data 为当前任务）；模型未就绪 409 + 50001 |
+| GET | `/index/status` | `{ready, indexed_count, pending_count, last_updated_at, embedding, task}` |
+
+索引规则：note/tex 全量；file 仅 md/txt/tex 抽取正文（其他 `skipped`）；请求路径只把 `embedding_status` 置 `pending`，真正嵌入在后台任务里；删除条目同时清理向量；`full` 会清理孤儿块。
+
+| GET | `/search` | `q`（1–200 字）、`mode=keyword|semantic|hybrid`（默认 hybrid）、`limit`（默认 20，最大 100）、`type`、`tag_id`；返回 `{items:[{item,score,snippet,match_type}], total, mode, degraded}` |
+
+检索实现：关键词走 FTS5（trigram，中文可子串；短词回退 LIKE + 出现次数打分，bm25 归一化到 0–1）；语义走 Chroma top-K 并按条目去重；混合用 RRF（k=60）融合后再归一化，排序 `score DESC, id DESC`；嵌入不可用时 `semantic/hybrid` 自动降级关键词并置 `degraded=true`。10k 条量级实测：关键词 43 ms、语义 top30 8 ms、混合 37 ms。
+
+| POST | `/agent/chat` | `{conversation_id?, messages, context_item_ids?, stream}`；仅 `stream=true`，SSE 事件 `message.started`/`message.delta`/`message.completed`/`error`，15s 心跳注释 |
+| GET | `/agent/conversations` | 分页 `{items,page,page_size,total,has_more}`，`updated_at DESC` |
+| GET | `/agent/conversations/{id}` | 会话详情，消息 `created_at ASC` |
+| DELETE | `/agent/conversations/{id}` | 硬删除并级联消息 |
+
+Agent 约定：Key 从 `PKB_DEEPSEEK_API_KEY` 或 Windows 凭据管理器读取，`privacy.allow_external_calls` 未开或没有 Key → 409 + `50001` 且不发请求；只读工具 `search_knowledge`/`get_item`/`get_item_content`/`list_tags`，工具循环上限 4 轮；`citations` 按 `item_id` 去重最多 10 条；客户端断开即终止上游且不写 assistant 消息；测试全部使用假客户端，零外联。
+
+| POST | `/ai/tasks` | `{type,item_ids?,options?}` → 202 任务；`type` ∈ organize/summarize/tagging/linking/profile_refresh/graph_build；未配 Key 或未允许外联 → 409 + `50001` 且不建任务 |
+| GET | `/ai/tasks` | 分页 + `status`/`type` 过滤 |
+| GET | `/ai/tasks/{id}` / `POST /ai/tasks/{id}/cancel` | 详情；仅 `queued`/`running` 可取消，终态 409 + `30002` |
+| GET | `/ai/suggestions` | 分页 + `status`/`type`/`item_id` 过滤 |
+| POST | `/ai/suggestions/{id}/accept`、`/reject` | accept 原子生效（tag→关联标签、link→建图边、summary→写 `ai_summary`）；重复接受幂等 200；已拒绝再接受/已接受再拒绝 409 + `30002` |
+| GET | `/ai/profile` / `POST /ai/profile/refresh` | 画像读取；刷新返回 202 任务 |
+
+自动化约定：同一时刻只跑一个任务，其余 `queued`；重启把 `running` 置 `failed`；取消在条目边界生效；`graph_build` 只从标签与已采纳的 link 建议确定性建图；测试全部注入假模型（零外联）。
+
+| GET/POST | `/reminders` | 列表（`status/from/to` 过滤、按提醒时间升序）与创建；`remind_at` 必须为将来（允许 1 分钟偏差），`related_item_ids` 必须存在 |
+| PATCH/DELETE | `/reminders/{id}` | 修改（改时间会重排调度）/ 取消（幂等） |
+| POST | `/reminders/{id}/done` \| `/snooze` | done 后按 `repeat_rule` 生成下一次（daily/weekly/monthly，月末夹取）；snooze 1–10080 分钟，到点回到 `pending` |
+| GET | `/events/stream` | SSE：`event: reminder.due` + ReminderOut 单行 JSON；15s 心跳；不重放历史 |
+
+调度：进程内 APScheduler（每条提醒一个 `date` 作业 + 60s 兜底扫描），启动重建并在关停时释放；启动/唤醒时补发已到点但未通知过的提醒（`last_notified_at` 保证每次 occurrence 只发一次）。
+
+| GET/POST | `/learning/plans` | 列表（`status` 过滤）与创建（可带里程碑；`target_date >= start_date`） |
+| GET/PATCH/DELETE | `/learning/plans/{id}` | 详情/更新（必须带 `expected_version`，冲突 409 + 30003 且 `data` 为当前计划）/删除（级联里程碑） |
+| POST/PATCH/DELETE | `/learning/plans/{id}/milestones`、`/learning/milestones/{id}` | 里程碑增改删，任何变更让所属计划 `version+1`；`status=done` 强制 100% 并记 `completed_at`，100% 自动 done，0<进度<100 且未给状态置 `in_progress`，重开清空 `completed_at` |
+| GET | `/learning/progress` | `{total_plans,active_plans,done_plans,completion_rate,milestone_total,milestone_done,streak_days,updated_at}` |
+
+| GET | `/graph` | `center_id`（条目或节点 id）+ `depth`（1–4，默认 2）+ `types` + `limit`（默认 500，最大 2000）；无中心时按 `weight DESC,id ASC` 截断 |
+| GET | `/graph/neighbors/{item_id}` | 条目节点及其直接邻居；条目不存在 404，无节点返回空图 |
+| GET | `/graph/stats` | `{node_count,edge_count,isolated_node_count,updated_at}` |
+| GET/PATCH | `/settings` | 嵌套非敏感配置；`PATCH` 可改 `model.name`、`model.api_key`（只写）、`ui.theme`、`privacy.allow_external_calls`、`ai.auto_organize_enabled`；改 `provider/base_url/embedding/storage` → 40002；Key 只回 `has_key` |
+| POST | `/settings/test-model` | 需已配 Key 且允许外联（否则 409 + 50001），返回 `{ok,model,latency_ms}` |
+| GET/PATCH | `/profile` | 基础资料 `{display_name,bio,timezone,preferred_style,updated_at}`；非法时区 40002 |
+
+密钥：DeepSeek Key 只存 Windows 凭据管理器（service `pkb-deepseek`），不写库、不进日志；凭据后端不可用时退化为进程内存储（仅本次运行）。
+
 ## 向量（B5a）
 
 - 依赖：`chromadb`（持久化，数据目录 `chroma/`）、`fastembed` + `onnxruntime`（本地推理 `bge-small-zh-v1.5`，512 维）。
