@@ -114,6 +114,8 @@ class Settings(BaseSettings):
     # 向量嵌入（本地推理，不经过 DeepSeek）
     embedding_model_dir: Path | None = None
     embedding_model_sha256: str | None = None
+    # 首次部署时允许后台下载/加载本地模型（默认关，避免测试与离线环境即发外联）
+    embedding_auto_warmup: bool = False
     embedding_batch_size: int = Field(default=EMBEDDING_BATCH_SIZE, ge=1, le=256)
     embedding_max_workers: int = Field(default=EMBEDDING_MAX_WORKERS, ge=1, le=8)
     chunk_chars: int = Field(default=CHUNK_SIZE_CHARS, ge=100, le=4000)

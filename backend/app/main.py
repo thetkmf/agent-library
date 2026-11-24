@@ -17,10 +17,21 @@ from .core.middleware import RequestContextMiddleware
 from .core.paths import ensure_layout
 from .db.migrate import run_migrations
 from .db.session import create_engine_for, create_session_factory
+from .services.embedding import EmbeddingService
+from .services.indexing import IndexService
 from .services.uploads import cleanup_expired
-from .services.vector_store import build_vector_store
+from .services.vector_store import MemoryVectorStore, build_vector_store
 
 logger = get_logger("pkb.app")
+
+
+def _warm_embedding_safely(service: EmbeddingService) -> None:
+    """Load the local embedding model in the background; failures only log."""
+    try:
+        service.warm_up()
+        logger.info("embedding.warmed_up")
+    except Exception as exc:  # pragma: no cover - 依赖装配异常
+        logger.warning("embedding.warm_up_failed", extra={"fields": {"reason": type(exc).__name__}})
 
 
 @asynccontextmanager
@@ -33,8 +44,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     cleanup_expired(settings)
     engine = create_engine_for(settings)
     app.state.engine = engine
-    app.state.session_factory = create_session_factory(engine)
-    app.state.vector_store = build_vector_store(settings)
+    session_factory = create_session_factory(engine)
+    app.state.session_factory = session_factory
+    vector_store = build_vector_store(settings) or MemoryVectorStore()
+    app.state.vector_store = vector_store
+    index_service = IndexService(
+        settings, session_factory, vector_store, EmbeddingService(settings)
+    )
+    app.state.index_service = index_service
+    interrupted = index_service.recover_interrupted()
+    if interrupted:
+        logger.info("index.recovered", extra={"fields": {"tasks": interrupted}})
     logger.info(
         "app.started",
         extra={

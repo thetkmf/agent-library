@@ -74,6 +74,9 @@ class VectorStore(Protocol):
     def item_chunk_count(self, item_id: str) -> int:
         """Number of stored chunks of one item."""
 
+    def item_ids(self) -> set[str]:
+        """Return every item id that currently has vectors."""
+
     def query(
         self, embedding: Sequence[float], *, limit: int, item_ids: Sequence[str] | None = None
     ) -> list[VectorHit]:
@@ -103,6 +106,9 @@ class MemoryVectorStore:
 
     def item_chunk_count(self, item_id: str) -> int:
         return sum(1 for row in self._rows.values() if row.item_id == item_id)
+
+    def item_ids(self) -> set[str]:
+        return {row.item_id for row in self._rows.values()}
 
     def query(
         self, embedding: Sequence[float], *, limit: int, item_ids: Sequence[str] | None = None
@@ -187,6 +193,11 @@ class ChromaVectorStore:
         result = self._get_collection().get(where={"item_id": item_id}, include=[])
         ids = result.get("ids") or []
         return len(ids)
+
+    def item_ids(self) -> set[str]:
+        result = self._get_collection().get(include=["metadatas"])
+        metadatas = result.get("metadatas") or []
+        return {str(meta.get("item_id")) for meta in metadatas if meta}
 
     def query(
         self, embedding: Sequence[float], *, limit: int, item_ids: Sequence[str] | None = None

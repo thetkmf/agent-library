@@ -109,9 +109,11 @@ def update_item(
     responses=_ERROR_RESPONSES,
     summary="软删除条目（进回收站）",
 )
-def delete_item(session: SessionDep, item_id: str) -> dict[str, Any]:
-    """Move an item into the recycle bin and return its id."""
-    items_service.delete_item(session, item_id)
+def delete_item(session: SessionDep, item_id: str, request: Request) -> dict[str, Any]:
+    """Move an item into the recycle bin and drop its vectors."""
+    items_service.delete_item(
+        session, item_id, vector_store=getattr(request.app.state, "vector_store", None)
+    )
     return envelope({"id": item_id})
 
 

@@ -59,6 +59,11 @@ python ../scripts/export_openapi.py --check  # 校验契约是否最新
 
 分片默认 8 MB（5–20 MB 可配），会话 24 小时过期（`30001`），缺片/校验失败 `40005`，启动时清理过期会话。
 
+| POST | `/index/reindex` | `{"mode": "incremental"|"full"}` → 202 `{task_id,type,status,progress}`；已有任务 409 + 30002（data 为当前任务）；模型未就绪 409 + 50001 |
+| GET | `/index/status` | `{ready, indexed_count, pending_count, last_updated_at, embedding, task}` |
+
+索引规则：note/tex 全量；file 仅 md/txt/tex 抽取正文（其他 `skipped`）；请求路径只把 `embedding_status` 置 `pending`，真正嵌入在后台任务里；删除条目同时清理向量；`full` 会清理孤儿块。
+
 ## 向量（B5a）
 
 - 依赖：`chromadb`（持久化，数据目录 `chroma/`）、`fastembed` + `onnxruntime`（本地推理 `bge-small-zh-v1.5`，512 维）。
