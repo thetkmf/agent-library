@@ -19,6 +19,7 @@ from .core.paths import ensure_layout
 from .db.migrate import run_migrations
 from .db.session import create_engine_for, create_session_factory
 from .services.agent import AgentService
+from .services.ai_tasks import AiTaskService
 from .services.embedding import EmbeddingService
 from .services.indexing import IndexService
 from .services.search import SearchService
@@ -62,6 +63,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     search_service = SearchService(settings, session_factory, vector_store, embedding_service)
     app.state.search_service = search_service
     app.state.agent_service = AgentService(settings, session_factory, search_service)
+    app.state.ai_task_service = AiTaskService(settings, session_factory)
     interrupted = index_service.recover_interrupted()
     if interrupted:
         logger.info("index.recovered", extra={"fields": {"tasks": interrupted}})

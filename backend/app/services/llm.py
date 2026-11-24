@@ -165,6 +165,45 @@ class DeepSeekClient:
                 details={"reason": type(exc).__name__},
             ) from exc
 
+    async def acomplete(
+        self, messages: Sequence[dict[str, Any]], *, response_format_json: bool = False
+    ) -> str:
+        """One non-streaming completion; returns the assistant text."""
+        payload: dict[str, Any] = {
+            "model": self.settings.model_name,
+            "messages": list(messages),
+            "stream": False,
+        }
+        if response_format_json:
+            payload["response_format"] = {"type": "json_object"}
+        try:
+            response = await self._client.post(CHAT_PATH, json=payload)
+        except httpx.TimeoutException as exc:
+            raise AppError(
+                ErrorCode.MODEL_TIMEOUT, "模型响应超时，请稍后重试", http_status=504
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise AppError(
+                ErrorCode.MODEL_CALL_FAILED,
+                "模型调用失败",
+                http_status=502,
+                details={"reason": type(exc).__name__},
+            ) from exc
+        if response.status_code >= 400:
+            raise self._status_error(response.status_code, response.text)
+        try:
+            body = response.json()
+        except ValueError as exc:
+            raise AppError(
+                ErrorCode.MODEL_CALL_FAILED, "模型返回内容无法解析", http_status=502
+            ) from exc
+        choices = body.get("choices") if isinstance(body, dict) else None
+        if not isinstance(choices, list) or not choices:
+            raise AppError(ErrorCode.MODEL_CALL_FAILED, "模型未返回结果", http_status=502)
+        message = choices[0].get("message") if isinstance(choices[0], dict) else None
+        content = message.get("content") if isinstance(message, dict) else None
+        return str(content or "")
+
     def _status_error(self, status: int, body: str) -> AppError:
         lowered = body.lower()
         if "context" in lowered and ("length" in lowered or "maximum" in lowered):

@@ -34,6 +34,8 @@ TASK_TYPES: Final[tuple[str, ...]] = (
 )
 TASK_STATUSES: Final[tuple[str, ...]] = ("queued", "running", "succeeded", "failed", "canceled")
 MESSAGE_ROLES: Final[tuple[str, ...]] = ("user", "assistant", "tool", "system")
+SUGGESTION_TYPES: Final[tuple[str, ...]] = ("tag", "link", "summary")
+SUGGESTION_STATUSES: Final[tuple[str, ...]] = ("pending", "accepted", "rejected")
 REPEAT_RULES: Final[tuple[str, ...]] = ("none", "daily", "weekly", "monthly")
 REMINDER_STATUSES: Final[tuple[str, ...]] = ("pending", "done", "snoozed", "canceled")
 PLAN_STATUSES: Final[tuple[str, ...]] = ("planning", "active", "done", "archived")
@@ -315,6 +317,27 @@ class UserProfile(Base):
     updated_at: Mapped[datetime] = mapped_column(
         UtcDateTime, default=utcnow, onupdate=utcnow, nullable=False
     )
+
+
+class AiSuggestion(TimestampMixin, Base):
+    """AI-generated suggestion awaiting accept/reject (tag / link / summary)."""
+
+    __tablename__ = "ai_suggestions"
+    __table_args__ = (
+        CheckConstraint(_in_clause("type", SUGGESTION_TYPES), name="type"),
+        CheckConstraint(_in_clause("status", SUGGESTION_STATUSES), name="status"),
+        Index("ix_ai_suggestions_status_created_at", "status", "created_at"),
+        Index("ix_ai_suggestions_item_id", "item_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    type: Mapped[str] = mapped_column(String(16), nullable=False)
+    item_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("items.id", ondelete="CASCADE"), nullable=False
+    )
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), default="pending", nullable=False)
+    decided_at: Mapped[datetime | None] = mapped_column(UtcDateTime, default=None, nullable=True)
 
 
 class AppSetting(Base):

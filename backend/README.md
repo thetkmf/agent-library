@@ -75,6 +75,15 @@ python ../scripts/export_openapi.py --check  # 校验契约是否最新
 
 Agent 约定：Key 从 `PKB_DEEPSEEK_API_KEY` 或 Windows 凭据管理器读取，`privacy.allow_external_calls` 未开或没有 Key → 409 + `50001` 且不发请求；只读工具 `search_knowledge`/`get_item`/`get_item_content`/`list_tags`，工具循环上限 4 轮；`citations` 按 `item_id` 去重最多 10 条；客户端断开即终止上游且不写 assistant 消息；测试全部使用假客户端，零外联。
 
+| POST | `/ai/tasks` | `{type,item_ids?,options?}` → 202 任务；`type` ∈ organize/summarize/tagging/linking/profile_refresh/graph_build；未配 Key 或未允许外联 → 409 + `50001` 且不建任务 |
+| GET | `/ai/tasks` | 分页 + `status`/`type` 过滤 |
+| GET | `/ai/tasks/{id}` / `POST /ai/tasks/{id}/cancel` | 详情；仅 `queued`/`running` 可取消，终态 409 + `30002` |
+| GET | `/ai/suggestions` | 分页 + `status`/`type`/`item_id` 过滤 |
+| POST | `/ai/suggestions/{id}/accept`、`/reject` | accept 原子生效（tag→关联标签、link→建图边、summary→写 `ai_summary`）；重复接受幂等 200；已拒绝再接受/已接受再拒绝 409 + `30002` |
+| GET | `/ai/profile` / `POST /ai/profile/refresh` | 画像读取；刷新返回 202 任务 |
+
+自动化约定：同一时刻只跑一个任务，其余 `queued`；重启把 `running` 置 `failed`；取消在条目边界生效；`graph_build` 只从标签与已采纳的 link 建议确定性建图；测试全部注入假模型（零外联）。
+
 ## 向量（B5a）
 
 - 依赖：`chromadb`（持久化，数据目录 `chroma/`）、`fastembed` + `onnxruntime`（本地推理 `bge-small-zh-v1.5`，512 维）。
