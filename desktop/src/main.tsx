@@ -5,6 +5,7 @@ import { App } from '@/app/App';
 import { installMocks, isMockEnabled } from '@/mocks';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import '@/styles/global.css';
+import 'katex/dist/katex.min.css';
 
 // 契约 Mock：在首次请求前装配（B2–B4 合入后移除）
 if (isMockEnabled()) {

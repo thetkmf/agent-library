@@ -43,8 +43,7 @@ export const NAV_SECTIONS: NavSection[] = [
         label: '笔记',
         description: 'Markdown / TeX 笔记的创建、编辑与版本管理',
         icon: BookOpen,
-        stage: 'planned',
-        milestone: 'M1',
+        stage: 'ready',
       },
       {
         id: 'timeline',
@@ -155,5 +154,13 @@ export const HOME_ITEM: NavItem = {
 };
 
 export function findNavItem(pathname: string): NavItem | undefined {
-  return NAV_ITEMS.find((item) => item.path === pathname) ?? (pathname === '/' ? HOME_ITEM : undefined);
+  if (pathname === '/') {
+    return HOME_ITEM;
+  }
+  const exact = NAV_ITEMS.find((item) => item.path === pathname);
+  if (exact) {
+    return exact;
+  }
+  // 子路由（如 /notes/{id}）归属到最近的一级导航
+  return NAV_ITEMS.find((item) => pathname.startsWith(`${item.path}/`));
 }

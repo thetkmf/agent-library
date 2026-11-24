@@ -41,7 +41,7 @@ ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm install
 | `npm run lint` | ESLint |
 | `npm test` | Vitest 单元测试 |
 | `npm run smoke` | 无头冒烟：构建后启动 Electron，校验挂载 + IPC 桥 + 导航 + 状态徽标，退出码即结果 |
-| `npm run gen:api` | 由 `backend/openapi.json` 生成 `src/api/generated.ts`（后端 B13 产出后可用） |
+| `npm run gen:api` | 由 `backend/openapi.json` 生成 `src/api/generated.ts`（接口变更后必须执行） |
 
 质量门禁顺序：`lint → typecheck → test → build → smoke`。
 
@@ -89,7 +89,7 @@ desktop/
     api/                    # 客户端（唯一 HTTP 入口）、SSE、错误映射、queryKey、生成的类型
     components/layout/      # AppShell / Sidebar / TopBar
     components/ui/          # 通用组件（Button / Panel / Badge / Empty / Error / Skeleton…）
-    features/               # 按领域划分（system / theme / placeholders / 后续 notes、search…）
+    features/               # 按领域划分（notes / system / theme / placeholders / 后续 search…）
     lib/                    # cn、格式化等工具
     stores/                 # Zustand：UI 状态（主题、侧栏折叠）
     styles/global.css       # 设计令牌（light/dark）+ 基础样式
@@ -195,6 +195,21 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - [x] 可访问性：跳转主内容链接、`aria-current`、`role=alert`、`aria-busy`、`prefers-reduced-motion`
 - [x] 测试：新增 store / Sidebar / 路由 / 状态组件测试，合计 47 项
 
+## 8.1 F3 编辑器（笔记 / TeX）
+
+| 能力 | 实现 |
+| --- | --- |
+| 路由 | `/notes`（列表）、`/notes/new`（新建）、`/notes/:itemId`（编辑）；深链接直达，未知 id 显示 404 态 |
+| 编辑器 | CodeMirror 6 受控封装（`CodeMirrorEditor`），Markdown / TeX 语法高亮，行号与历史快捷键 |
+| 预览 | Markdown 走 `marked` + DOMPurify 白名单净化；TeX 走 KaTeX（`throwOnError`，失败提示不阻塞编辑） |
+| 新建 | 类型（note/tex）创建后不可改；`Idempotency-Key` 页面实例内复用，重复点击不会建重复条目 |
+| 自动保存 | 停止输入 800ms 后保存；`PUT /items/{id}/content?expected_version=` + `text/plain`；串行写（同一时刻仅一个请求），成功更新本地 `version` |
+| 版本冲突 | 409/`30003` → 弹窗「使用服务端版本 / 保留本地并覆盖 / 稍后处理」；两条路径都有集成测试 |
+| 草稿与离开保护 | 草稿按条目 id + 基线版本存 localStorage；崩溃/刷新后可恢复；有未保存改动时导航二次确认 + `beforeunload` |
+| 状态 | 加载骨架 / 空列表 / 错误可重试 / 保存中·已保存·失败·冲突 |
+
+新增依赖（已写入 `desktop/package.json`）：`@codemirror/*`、`marked`、`dompurify`、`katex`。
+
 ## 9. F2 完成情况
 
 - [x] `npm run gen:api` 打通，`src/api/generated.ts` 与 `backend/openapi.json` 同步（当前 3 个系统接口）
@@ -210,4 +225,5 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - 后端尚未实现（B0），因此当前状态常为 `BACKEND_NOT_FOUND`；后端就绪后无需改前端即可自动接管
 - 打包与安装包（electron-builder + PyInstaller）属于 F12
 - 接口类型目前只覆盖 B0 产出的系统接口；B1–B12 完成后重跑 `npm run gen:api` 即可扩展（B13 固化）
-- 各业务页面（笔记、检索、AI、提醒、图谱…）分别由 F3–F11 实现，当前为占位页
+- 检索、AI、提醒、图谱、设置等页面分别由 F6–F11 实现，当前为占位页
+- F3 的条目接口暂用 `src/mocks`（B2 未产出）；B2 合入后删除 mock 并重跑 `gen:api`

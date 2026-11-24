@@ -3,6 +3,7 @@ import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { NAV_SECTIONS } from '@/app/nav-items';
 import { IconButton } from '@/components/ui/IconButton';
 import { useUiStore } from '@/stores/ui-store';
+import { confirmLeaveIfDirty } from '@/stores/editor-guard-store';
 import { cn } from '@/lib/cn';
 
 /** 左侧主导航：可折叠，折叠后仅图标 + tooltip（title），保持键盘可达 */
@@ -36,6 +37,11 @@ export function Sidebar(): JSX.Element {
             <NavLink
               to="/"
               end
+              onClick={(event) => {
+                if (!confirmLeaveIfDirty()) {
+                  event.preventDefault();
+                }
+              }}
               title={collapsed ? '工作台' : undefined}
               className={({ isActive }) =>
                 cn(
@@ -67,6 +73,11 @@ export function Sidebar(): JSX.Element {
                   <li key={item.path}>
                     <NavLink
                       to={item.path}
+                      onClick={(event) => {
+                        if (!confirmLeaveIfDirty()) {
+                          event.preventDefault();
+                        }
+                      }}
                       title={collapsed ? item.label : undefined}
                       className={({ isActive }) =>
                         cn(

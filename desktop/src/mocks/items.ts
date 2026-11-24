@@ -56,6 +56,7 @@ function seed(): void {
   }
   seeded = true;
   const seedData: Array<{
+    id: string;
     type: MockItemType;
     title: string;
     content: string;
@@ -63,6 +64,8 @@ function seed(): void {
     minutesAgo: number;
   }> = [
     {
+      // 固定 UUID 便于手册/冒烟直达（契约只要求 UUID 字符串）
+      id: '0199a3f2-0001-7000-8000-000000000001',
       type: 'note',
       title: '向量检索笔记',
       content: '# 向量检索\n\n通过嵌入模型把文本映射到向量空间，再做近邻检索。\n',
@@ -73,6 +76,7 @@ function seed(): void {
       minutesAgo: 30,
     },
     {
+      id: '0199a3f2-0002-7000-8000-000000000002',
       type: 'tex',
       title: '贝叶斯公式',
       content: 'P(A|B) = \\frac{P(B|A)\\,P(A)}{P(B)}',
@@ -80,6 +84,7 @@ function seed(): void {
       minutesAgo: 300,
     },
     {
+      id: '0199a3f2-0003-7000-8000-000000000003',
       type: 'note',
       title: '周会纪要',
       content: '- 完成 B0 骨架\n- 前端 F0–F2 完成\n',
@@ -89,7 +94,7 @@ function seed(): void {
   ];
 
   seedData.forEach((entry) => {
-    const id = crypto.randomUUID();
+    const id = entry.id;
     const createdAt = isoOffsetMinutes(entry.minutesAgo);
     store.set(id, {
       item: {
@@ -125,6 +130,7 @@ function toItem(stored: StoredItem): MockItem {
 }
 
 function findItem(id: string): StoredItem | undefined {
+  seed();
   const stored = store.get(id);
   if (!stored || stored.item.status === 'trashed') {
     return undefined;
@@ -144,6 +150,7 @@ interface CreateBody {
 }
 
 function createItem(requestText: string, headers: Headers): ReturnType<typeof ok> | ReturnType<typeof fail> {
+  seed();
   let body: CreateBody;
   try {
     body = JSON.parse(requestText) as CreateBody;
@@ -204,6 +211,7 @@ function createItem(requestText: string, headers: Headers): ReturnType<typeof ok
 }
 
 function listItems(searchParams: URLSearchParams): ReturnType<typeof ok> {
+  seed();
   const page = Math.max(1, Number(searchParams.get('page') ?? '1') || 1);
   const pageSize = Math.min(100, Math.max(1, Number(searchParams.get('page_size') ?? '20') || 20));
   const type = searchParams.getAll('type');

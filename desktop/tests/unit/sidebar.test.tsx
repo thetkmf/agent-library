@@ -32,10 +32,10 @@ describe('Sidebar', () => {
     expect(active).toHaveAttribute('aria-current', 'page');
   });
 
-  it('规划中功能显示「规划中」标记', () => {
+  it('规划中功能显示「规划中」标记，就绪功能不显示', () => {
     renderSidebar();
-    const link = screen.getByRole('link', { name: /笔记/ });
-    expect(link).toHaveTextContent('规划中');
+    expect(screen.getByRole('link', { name: /时间轴/ })).toHaveTextContent('规划中');
+    expect(screen.getByRole('link', { name: /笔记/ })).not.toHaveTextContent('规划中');
   });
 
   it('可收起侧边栏，收起后保留可访问名称', async () => {

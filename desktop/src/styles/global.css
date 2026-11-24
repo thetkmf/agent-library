@@ -73,3 +73,50 @@
     scrollbar-color: rgb(var(--pkb-border)) transparent;
   }
 }
+
+@layer components {
+  /* Markdown 预览排版（不引入 typography 插件，保持依赖精简） */
+  .prose-pkb :where(h1, h2, h3, h4, h5, h6) {
+    @apply mt-4 mb-2 font-semibold text-content;
+  }
+  .prose-pkb h1 {
+    @apply text-lg;
+  }
+  .prose-pkb h2 {
+    @apply text-base;
+  }
+  .prose-pkb :where(p, ul, ol, blockquote, pre, table) {
+    @apply my-2;
+  }
+  .prose-pkb ul {
+    @apply list-disc pl-5;
+  }
+  .prose-pkb ol {
+    @apply list-decimal pl-5;
+  }
+  .prose-pkb a {
+    @apply text-accent underline underline-offset-2;
+  }
+  .prose-pkb code {
+    @apply rounded bg-sunken px-1 py-0.5 font-mono text-[12px];
+  }
+  .prose-pkb pre {
+    @apply overflow-x-auto rounded bg-sunken p-3;
+  }
+  .prose-pkb pre code {
+    @apply bg-transparent p-0;
+  }
+  .prose-pkb blockquote {
+    @apply border-l-2 border-border pl-3 text-muted;
+  }
+  .prose-pkb table {
+    @apply w-full border-collapse text-xs;
+  }
+  .prose-pkb th,
+  .prose-pkb td {
+    @apply border border-border px-2 py-1 text-left;
+  }
+  .prose-pkb img {
+    @apply max-w-full rounded;
+  }
+}

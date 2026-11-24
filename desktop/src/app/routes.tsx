@@ -1,6 +1,9 @@
 import { Route, Routes } from 'react-router-dom';
 import { NAV_ITEMS } from '@/app/nav-items';
 import { PlannedPage, HomePage, NotFoundPage } from '@/features/placeholders/PlannedPage';
+import { NoteEditorPage } from '@/features/notes/NoteEditorPage';
+import { NotesListPage } from '@/features/notes/NotesListPage';
+import { NewNotePage } from '@/features/notes/NewNotePage';
 import { SystemStatusPage } from '@/features/system/SystemStatusPage';
 
 /**
@@ -11,7 +14,10 @@ export function AppRoutes(): JSX.Element {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      {NAV_ITEMS.map((item) =>
+      <Route path="/notes" element={<NotesListPage />} />
+      <Route path="/notes/new" element={<NewNotePage />} />
+      <Route path="/notes/:itemId" element={<NoteEditorPage />} />
+      {NAV_ITEMS.filter((item) => item.id !== 'notes').map((item) =>
         item.stage === 'ready' ? (
           <Route key={item.path} path={item.path} element={<SystemStatusPage />} />
         ) : (

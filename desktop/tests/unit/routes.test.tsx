@@ -46,7 +46,9 @@ describe('AppRoutes', () => {
           </MemoryRouter>
         </QueryClientProvider>,
       );
-      if (item.stage === 'ready') {
+      if (item.id === 'notes') {
+        expect(screen.getByRole('heading', { name: '全部条目' })).toBeInTheDocument();
+      } else if (item.stage === 'ready') {
         expect(screen.getByRole('region', { name: '本地后端' })).toBeInTheDocument();
       } else {
         expect(screen.getByRole('heading', { name: `${item.label}即将上线` })).toBeInTheDocument();

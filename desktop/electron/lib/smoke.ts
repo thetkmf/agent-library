@@ -112,6 +112,12 @@ async function prepareWindow(window: BrowserWindow, logger: Logger): Promise<voi
       `document.querySelector('a[href="${'#'}${route}"]')?.click();`,
       true,
     );
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    // 深链接（如 /notes/{id}）没有对应导航项时直接改 hash
+    await window.webContents.executeJavaScript(
+      `if (window.location.hash !== "${'#'}${route}") { window.location.hash = "${'#'}${route}"; }`,
+      true,
+    );
     await new Promise((resolve) => setTimeout(resolve, 400));
     const state = await window.webContents.executeJavaScript(
       `({ hash: window.location.hash, hrefs: Array.from(document.querySelectorAll('a')).slice(0, 4).map((a) => a.getAttribute('href')) })`,
