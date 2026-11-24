@@ -4149,6 +4149,14 @@
         "title": "VectorCapability",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "description": "Bearer <PKB_TOKEN>",
+        "in": "header",
+        "name": "Authorization",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
@@ -4261,6 +4269,11 @@
             "description": "上游模型错误"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "SSE 流式对话（message.started/delta/completed/error）",
         "tags": [
           "agent"
@@ -4374,6 +4387,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "会话列表（updated_at DESC）",
         "tags": [
           "agent"
@@ -4473,6 +4491,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "删除会话（级联消息）",
         "tags": [
           "agent"
@@ -4570,6 +4593,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "会话详情（消息升序）",
         "tags": [
           "agent"
@@ -4660,6 +4688,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "用户画像",
         "tags": [
           "ai"
@@ -4750,6 +4783,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "触发画像刷新（202 任务）",
         "tags": [
           "ai"
@@ -4911,6 +4949,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "整理建议列表（可按 status/type/item_id 过滤）",
         "tags": [
           "ai"
@@ -5010,6 +5053,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "采纳建议（tag→关联标签，link→建图边，summary→写 ai_summary）",
         "tags": [
           "ai"
@@ -5109,6 +5157,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "拒绝建议",
         "tags": [
           "ai"
@@ -5254,6 +5307,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "任务列表（按创建时间倒序，可按 status/type 过滤）",
         "tags": [
           "ai"
@@ -5352,6 +5410,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "创建 AI 任务（organize/summarize/tagging/linking/profile_refresh/graph_build）",
         "tags": [
           "ai"
@@ -5451,6 +5514,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "任务详情",
         "tags": [
           "ai"
@@ -5550,6 +5618,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "取消任务（仅 queued/running）",
         "tags": [
           "ai"
@@ -5609,6 +5682,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "系统事件流（reminder.due 等；不重放历史）",
         "tags": [
           "events"
@@ -5719,6 +5797,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "小文件上传（≤50 MB）",
         "tags": [
           "files"
@@ -5817,6 +5900,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "下载 / 预览文件（支持 Range）",
         "tags": [
           "files"
@@ -5956,6 +6044,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "全图/子图（center_id + depth，或按权重截断）",
         "tags": [
           "graph"
@@ -6045,6 +6138,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "条目的直接邻居子图",
         "tags": [
           "graph"
@@ -6125,6 +6223,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "节点数、边数、孤立节点数",
         "tags": [
           "graph"
@@ -6243,6 +6346,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "触发增量/全量重建（202 + 任务）",
         "tags": [
           "index"
@@ -6303,6 +6411,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "索引状态（嵌入、已索引、待索引、最近任务）",
         "tags": [
           "index"
@@ -6525,6 +6638,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "条目列表",
         "tags": [
           "items"
@@ -6629,6 +6747,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "创建条目",
         "tags": [
           "items"
@@ -6718,6 +6841,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "软删除条目（进回收站）",
         "tags": [
           "items"
@@ -6805,6 +6933,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "条目详情",
         "tags": [
           "items"
@@ -6918,6 +7051,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "更新条目（标题/标签/状态）",
         "tags": [
           "items"
@@ -7007,6 +7145,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "读取正文（text/plain，不使用信封）",
         "tags": [
           "items"
@@ -7126,6 +7269,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "保存正文（text/plain + expected_version）",
         "tags": [
           "items"
@@ -7215,6 +7363,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "从回收站恢复条目",
         "tags": [
           "items"
@@ -7314,6 +7467,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "批量关联标签（幂等）",
         "tags": [
           "tags"
@@ -7412,6 +7570,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "解除标签关联",
         "tags": [
           "tags"
@@ -7511,6 +7674,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "删除里程碑（计划版本 +1）",
         "tags": [
           "learning"
@@ -7618,6 +7786,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "更新里程碑（进度/状态联动）",
         "tags": [
           "learning"
@@ -7747,6 +7920,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "计划列表（可按 status 过滤）",
         "tags": [
           "learning"
@@ -7845,6 +8023,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "创建计划（可带里程碑）",
         "tags": [
           "learning"
@@ -7944,6 +8127,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "删除计划（级联里程碑）",
         "tags": [
           "learning"
@@ -8041,6 +8229,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "计划详情（含里程碑）",
         "tags": [
           "learning"
@@ -8148,6 +8341,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "更新计划（必须带 expected_version）",
         "tags": [
           "learning"
@@ -8257,6 +8455,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "新增里程碑（计划版本 +1）",
         "tags": [
           "learning"
@@ -8347,6 +8550,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "学习进度汇总（计划数、完成率、连续学习天数）",
         "tags": [
           "learning"
@@ -8447,6 +8655,11 @@
             "description": "上游超时"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "用户基础资料",
         "tags": [
           "settings"
@@ -8555,6 +8768,11 @@
             "description": "上游超时"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "更新基础资料（timezone 为 IANA 名称）",
         "tags": [
           "settings"
@@ -8716,6 +8934,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "提醒列表（按提醒时间升序，可按 status/from/to 过滤）",
         "tags": [
           "reminders"
@@ -8814,6 +9037,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "创建提醒",
         "tags": [
           "reminders"
@@ -8913,6 +9141,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "取消提醒（幂等）",
         "tags": [
           "reminders"
@@ -9020,6 +9253,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "修改提醒（标题/内容/时间/重复/关联条目）",
         "tags": [
           "reminders"
@@ -9119,6 +9357,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "标记完成（重复规则自动生成下一次）",
         "tags": [
           "reminders"
@@ -9228,6 +9471,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "稍后提醒（1–10080 分钟）",
         "tags": [
           "reminders"
@@ -9365,6 +9613,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "检索：关键词 / 语义 / 混合（RRF）",
         "tags": [
           "search"
@@ -9465,6 +9718,11 @@
             "description": "上游超时"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "读取非敏感配置（Key 只回 has_key）",
         "tags": [
           "settings"
@@ -9573,6 +9831,11 @@
             "description": "上游超时"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "更新配置（部分字段；只读分区 40002）",
         "tags": [
           "settings"
@@ -9683,6 +9946,11 @@
             "description": "上游超时"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "测试模型连通性（返回延迟与模型名）",
         "tags": [
           "settings"
@@ -9753,6 +10021,11 @@
             "description": "服务未就绪"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "当前能力：模型、向量库、存储、隐私开关",
         "tags": [
           "system"
@@ -9823,6 +10096,11 @@
             "description": "服务未就绪"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "应用与后端版本信息",
         "tags": [
           "system"
@@ -9903,6 +10181,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "标签列表（含 item_count）",
         "tags": [
           "tags"
@@ -9991,6 +10274,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "创建标签",
         "tags": [
           "tags"
@@ -10080,6 +10368,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "删除标签并解除关联",
         "tags": [
           "tags"
@@ -10177,6 +10470,11 @@
             "description": "参数校验失败"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "重命名标签",
         "tags": [
           "tags"
@@ -10395,6 +10693,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "时间轴分组（day/week/month）",
         "tags": [
           "timeline"
@@ -10505,6 +10808,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "初始化分片上传会话",
         "tags": [
           "files"
@@ -10623,6 +10931,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "上传单个分片（可乱序 / 重传）",
         "tags": [
           "files"
@@ -10732,6 +11045,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "summary": "完成分片上传（校验整体 sha256，幂等）",
         "tags": [
           "files"

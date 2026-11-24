@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import Engine, inspect
 
 EXPECTED_TABLES = {
+    "ai_suggestions",
     "ai_tasks",
     "app_settings",
     "conversations",
@@ -97,3 +98,31 @@ def test_app_lifespan_prepares_database(tmp_path: Path) -> None:
         assert "items" in inspect(engine).get_table_names()
         assert client.app.state.session_factory is not None
         assert database_path(settings).exists()
+
+
+def test_downgrade_to_base_and_back(tmp_path: Path) -> None:
+    """Empty → head → base → head 都能跑通（发布回滚路径）。"""
+    from alembic import command
+    from alembic.config import Config
+
+    backend_root = Path(__file__).resolve().parents[2]
+    settings = _settings(tmp_path)
+    run_migrations(settings)
+
+    config = Config(str(backend_root / "alembic.ini"))
+    config.set_main_option("script_location", str(backend_root / "migrations"))
+    config.set_main_option("sqlalchemy.url", f"sqlite:///{database_path(settings).as_posix()}")
+    command.downgrade(config, "base")
+
+    engine = create_engine_for(settings)
+    try:
+        assert inspect(engine).get_table_names() == ["alembic_version"]
+    finally:
+        engine.dispose()
+
+    run_migrations(settings)
+    engine = create_engine_for(settings)
+    try:
+        assert set(inspect(engine).get_table_names()) >= EXPECTED_TABLES
+    finally:
+        engine.dispose()
