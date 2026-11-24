@@ -262,16 +262,17 @@ def update_item(
         elif payload.status in ("active", "archived") and item.deleted_at is not None:
             values["deleted_at"] = None
 
-    updated = (
-        repo.update_item(session, item_id, values, expected_version=expected) if values else None
-    )
-    if values and updated is None:
-        session.rollback()
-        current = repo.get_item(session, item_id)
-        raise version_conflict(
-            data=to_item_out(current).model_dump(mode="json") if current else None
-        )
-    if updated is None:
+    # Any structural change (title / status / tags) bumps the version atomically.
+    # Tag-only PATCH used to skip this, letting a stale body save slip through.
+    if values or payload.tags is not None:
+        updated = repo.update_item(session, item_id, values, expected_version=expected)
+        if updated is None:
+            session.rollback()
+            current = repo.get_item(session, item_id)
+            raise version_conflict(
+                data=to_item_out(current).model_dump(mode="json") if current else None
+            )
+    else:
         updated = item
 
     if payload.tags is not None:

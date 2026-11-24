@@ -31,6 +31,9 @@ chroma/
 *.db
 *.sqlite
 *.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+.smoke-data/
 logs/
 *.log
 
