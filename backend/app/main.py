@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -19,6 +20,7 @@ from .db.migrate import run_migrations
 from .db.session import create_engine_for, create_session_factory
 from .services.embedding import EmbeddingService
 from .services.indexing import IndexService
+from .services.search import SearchService
 from .services.uploads import cleanup_expired
 from .services.vector_store import MemoryVectorStore, build_vector_store
 
@@ -48,10 +50,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.session_factory = session_factory
     vector_store = build_vector_store(settings) or MemoryVectorStore()
     app.state.vector_store = vector_store
-    index_service = IndexService(
-        settings, session_factory, vector_store, EmbeddingService(settings)
-    )
+    embedding_service = EmbeddingService(settings)
+    if settings.embedding_auto_warmup:
+        # 后台预热，不阻塞启动（默认关，避免离线/测试环境即发外联）
+        threading.Thread(
+            target=_warm_embedding_safely, args=(embedding_service,), daemon=True
+        ).start()
+    index_service = IndexService(settings, session_factory, vector_store, embedding_service)
     app.state.index_service = index_service
+    app.state.search_service = SearchService(
+        settings, session_factory, vector_store, embedding_service
+    )
     interrupted = index_service.recover_interrupted()
     if interrupted:
         logger.info("index.recovered", extra={"fields": {"tasks": interrupted}})

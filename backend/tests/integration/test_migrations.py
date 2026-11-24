@@ -69,6 +69,11 @@ def test_migrations_are_idempotent(tmp_path: Path) -> None:
         engine.dispose()
 
 
+def _mentions_fts(diff: object) -> bool:
+    """FTS5 虚表及其影子表由迁移维护，ORM metadata 不包含它们。"""
+    return "items_fts" in repr(diff)
+
+
 def test_models_match_database_schema(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
     run_migrations(settings)
@@ -80,7 +85,8 @@ def test_models_match_database_schema(tmp_path: Path) -> None:
             diffs = compare_metadata(context, Base.metadata)
     finally:
         engine.dispose()
-    assert diffs == [], f"模型与迁移不一致：{diffs}"
+    relevant = [diff for diff in diffs if not _mentions_fts(diff)]
+    assert relevant == [], f"模型与迁移不一致：{relevant}"
 
 
 def test_app_lifespan_prepares_database(tmp_path: Path) -> None:

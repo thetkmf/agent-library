@@ -64,6 +64,10 @@ python ../scripts/export_openapi.py --check  # 校验契约是否最新
 
 索引规则：note/tex 全量；file 仅 md/txt/tex 抽取正文（其他 `skipped`）；请求路径只把 `embedding_status` 置 `pending`，真正嵌入在后台任务里；删除条目同时清理向量；`full` 会清理孤儿块。
 
+| GET | `/search` | `q`（1–200 字）、`mode=keyword|semantic|hybrid`（默认 hybrid）、`limit`（默认 20，最大 100）、`type`、`tag_id`；返回 `{items:[{item,score,snippet,match_type}], total, mode, degraded}` |
+
+检索实现：关键词走 FTS5（trigram，中文可子串；短词回退 LIKE + 出现次数打分，bm25 归一化到 0–1）；语义走 Chroma top-K 并按条目去重；混合用 RRF（k=60）融合后再归一化，排序 `score DESC, id DESC`；嵌入不可用时 `semantic/hybrid` 自动降级关键词并置 `degraded=true`。10k 条量级实测：关键词 43 ms、语义 top30 8 ms、混合 37 ms。
+
 ## 向量（B5a）
 
 - 依赖：`chromadb`（持久化，数据目录 `chroma/`）、`fastembed` + `onnxruntime`（本地推理 `bge-small-zh-v1.5`，512 维）。

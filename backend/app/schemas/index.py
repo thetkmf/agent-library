@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class ReindexRequest(BaseModel):
@@ -46,18 +46,3 @@ class IndexStatusOut(BaseModel):
     last_updated_at: datetime | None = None
     embedding: EmbeddingInfo
     task: IndexTaskState | None = None
-
-
-class SearchHitItem(BaseModel):
-    """Item projection used by search results (B6 consumes this shape)."""
-
-    id: str
-    type: str
-    title: str
-
-
-class SearchHit(BaseModel):
-    item: SearchHitItem
-    score: float = Field(ge=0.0, le=1.0)
-    snippet: str
-    match_type: Literal["keyword", "semantic"]
