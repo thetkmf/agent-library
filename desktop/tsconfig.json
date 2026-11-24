@@ -25,5 +25,6 @@
       "@shared/*": ["shared/*"]
     }
   },
-  "include": ["src", "shared", "tests", "vite.config.mts", "tailwind.config.cjs"]
+  "include": ["src", "shared", "tests", "vite.config.mts", "tailwind.config.cjs"],
+  "exclude": ["tests/e2e"]
 }

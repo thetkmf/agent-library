@@ -5,7 +5,7 @@ module.exports = {
   parserOptions: { ecmaVersion: 2022, sourceType: 'module', ecmaFeatures: { jsx: true } },
   plugins: ['@typescript-eslint', 'react-hooks', 'react-refresh'],
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
-  ignorePatterns: ['dist/', 'dist-electron/', 'node_modules/', 'src/api/generated.ts'],
+  ignorePatterns: ['dist/', 'dist-electron/', 'node_modules/', 'src/api/generated.ts', 'tests/e2e/', 'release/', 'release-nsis/'],
   rules: {
     'no-console': 'off',
     '@typescript-eslint/no-explicit-any': 'error',
