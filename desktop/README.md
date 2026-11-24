@@ -39,10 +39,28 @@ ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm install
 | `npm run typecheck` | 渲染进程与主进程类型检查（strict） |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest 单元测试 |
-| `npm run smoke` | 无头冒烟：构建后启动 Electron，校验首屏挂载 + IPC 桥，退出码即结果 |
+| `npm run smoke` | 无头冒烟：构建后启动 Electron，校验挂载 + IPC 桥 + 导航 + 状态徽标，退出码即结果 |
 | `npm run gen:api` | 由 `backend/openapi.json` 生成 `src/api/generated.ts`（后端 B13 产出后可用） |
 
 质量门禁顺序：`lint → typecheck → test → build → smoke`。
+
+冒烟脚本可选环境变量（便于留档与后续 E2E）：
+
+| 变量 | 作用 |
+| --- | --- |
+| `PKB_SMOKE_ROUTE=/system` | 截图前点击对应导航，切到指定页面 |
+| `PKB_SMOKE_THEME=dark` | 截图前把主题切到深色（`light` / `dark`） |
+| `PKB_SMOKE_SCREENSHOT=<绝对路径>` | 把首屏截图写入指定 PNG |
+| `PKB_BACKEND_CMD` / `PKB_BACKEND_CWD` | 指定后端启动命令与工作目录（见第 4 节） |
+
+> 在 Git Bash 里传 `/system` 这类参数时需要 `MSYS_NO_PATHCONV=1`，否则会被改写成 Windows 路径。
+>
+> 若当前工作树没有 `backend/.venv`，可指向后端工作树的解释器：
+>
+> ```bash
+> BE="../后端-test-tube-langchain/backend"
+> PKB_BACKEND_CMD="$(pwd)/$BE/.venv/Scripts/python.exe -m app.main" PKB_BACKEND_CWD="$(pwd)/$BE" npm run dev
+> ```
 
 ---
 
@@ -66,10 +84,13 @@ desktop/
       smoke.ts              # PKB_SMOKE=1 冒烟检查
   shared/ipc.ts             # 主进程/preload/渲染进程共享的 IPC 类型与通道
   src/                      # 渲染进程（Web）
+    app/                    # 路由表（导航定义驱动）、应用根组件
     api/                    # F2：客户端、SSE、mappers、生成的类型
-    components/ui/          # 通用组件（Button / Panel / StatusBadge）
-    features/               # 按领域划分（system / theme / 后续 notes、search…）
+    components/layout/      # AppShell / Sidebar / TopBar
+    components/ui/          # 通用组件（Button / Panel / Badge / Empty / Error / Skeleton…）
+    features/               # 按领域划分（system / theme / placeholders / 后续 notes、search…）
     lib/                    # cn、格式化等工具
+    stores/                 # Zustand：UI 状态（主题、侧栏折叠）
     styles/global.css       # 设计令牌（light/dark）+ 基础样式
   scripts/                  # dev / build-electron / smoke
   tests/unit/               # Vitest 单元测试
@@ -125,8 +146,19 @@ desktop/
 - [x] 首屏展示后端状态、端口、PID、数据目录、日志路径，支持「重启后端」
 - [x] 质量门禁：lint / typecheck / 单测（31 项）/ build / 冒烟 全绿
 
+## 7. F1 完成情况
+
+- [x] 应用外壳：左侧分组导航（可折叠、键盘可达、折叠后保留可访问名称）+ 顶栏 + 主内容 + 状态栏
+- [x] 路由：HashRouter（适配 `file://`），路由表由 `src/app/nav-items.ts` 驱动，导航与路由不会漂移
+- [x] 主题：浅色 / 深色 / 跟随系统，状态存 Zustand 并持久化到 `localStorage`
+- [x] 通用组件：Button / IconButton / LinkButton / Panel / StatusBadge / Skeleton / EmptyState / ErrorState
+- [x] 状态覆盖：规划中功能给出占位说明与里程碑，未知路径回落兜底页，加载/错误态可重试
+- [x] 可访问性：跳转主内容链接、`aria-current`、`role=alert`、`aria-busy`、`prefers-reduced-motion`
+- [x] 测试：新增 store / Sidebar / 路由 / 状态组件测试，合计 47 项
+
 已知限制（后续任务处理）：
 
 - 后端尚未实现（B0），因此当前状态常为 `BACKEND_NOT_FOUND`；后端就绪后无需改前端即可自动接管
 - 打包与安装包（electron-builder + PyInstaller）属于 F12
-- API 客户端、类型生成、SSE 属于 F2；本阶段仅打通启动链路
+- API 客户端、类型生成、SSE 属于 F2；`backend/openapi.json` 已产出，待 B13 完成后执行 `npm run gen:api`
+- 各业务页面（笔记、检索、AI、提醒、图谱…）分别由 F3–F11 实现，当前为占位页

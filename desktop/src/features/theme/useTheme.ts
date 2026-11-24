@@ -1,37 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useUiStore, type ThemeMode } from '@/stores/ui-store';
 
-export type ThemeMode = 'light' | 'dark' | 'system';
+export type { ThemeMode };
 export type ResolvedTheme = 'light' | 'dark';
 
-const STORAGE_KEY = 'pkb.theme';
-
-function readStoredMode(): ThemeMode {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw === 'light' || raw === 'dark' || raw === 'system') {
-      return raw;
-    }
-  } catch {
-    // localStorage 不可用（隐私模式）时回落到 system
-  }
-  return 'system';
-}
-
-function resolveTheme(mode: ThemeMode): ResolvedTheme {
+export function resolveTheme(mode: ThemeMode): ResolvedTheme {
   if (mode !== 'system') {
     return mode;
+  }
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return 'light';
   }
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-/** 主题切换：system 跟随操作系统，选择结果写入 localStorage 并同步到 <html data-theme> */
+/** 主题状态存在 Zustand（持久化到 localStorage），并同步到 <html data-theme> */
 export function useTheme(): {
   mode: ThemeMode;
   resolved: ResolvedTheme;
   setMode: (mode: ThemeMode) => void;
 } {
-  const [mode, setModeState] = useState<ThemeMode>(() => readStoredMode());
-  const [resolved, setResolved] = useState<ResolvedTheme>(() => resolveTheme(readStoredMode()));
+  const mode = useUiStore((state) => state.themeMode);
+  const setMode = useUiStore((state) => state.setThemeMode);
+  const [resolved, setResolved] = useState<ResolvedTheme>(() => resolveTheme(mode));
 
   useEffect(() => {
     const apply = (): void => {
@@ -41,7 +32,7 @@ export function useTheme(): {
     };
     apply();
 
-    if (mode !== 'system') {
+    if (mode !== 'system' || typeof window.matchMedia !== 'function') {
       return;
     }
     const media = window.matchMedia('(prefers-color-scheme: dark)');
@@ -49,14 +40,12 @@ export function useTheme(): {
     return () => media.removeEventListener('change', apply);
   }, [mode]);
 
-  const setMode = useCallback((next: ThemeMode) => {
-    setModeState(next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // ignore
-    }
-  }, []);
+  const update = useCallback(
+    (next: ThemeMode) => {
+      setMode(next);
+    },
+    [setMode],
+  );
 
-  return { mode, resolved, setMode };
+  return { mode, resolved, setMode: update };
 }

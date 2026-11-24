@@ -11,6 +11,8 @@ export function StatusBadge({ state, className }: StatusBadgeProps): JSX.Element
   const meta = getBackendStateMeta(state);
   return (
     <span
+      data-testid="backend-status"
+      data-state={state}
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium',
         TONE_CLASS[meta.tone],

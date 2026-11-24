@@ -247,6 +247,44 @@ describe('BackendManager', () => {
     expect(status.port).toBe(52342);
   });
 
+  it('进程启动即退出时，把最后一行 stderr 作为失败原因', async () => {
+    const manager = new BackendManager({
+      launch,
+      token: 'local-token',
+      dataDir: dir,
+      logFile,
+      logger: createLoggerForTest(),
+      baseEnv: {},
+      maxAttempts: 1,
+      healthTimeoutMs: 1_000,
+      pollIntervalMs: 1,
+      restartDelayMs: 1,
+      deps: {
+        findPort: () => Promise.resolve(52341),
+        probeHealth: () => Promise.resolve(false),
+        spawnProcess: () => {
+          const child = createFakeChild(9001);
+          // 模拟后端依赖缺失：先输出 stderr，再退出
+          queueMicrotask(() => {
+            child.stderr.emit('data', "ModuleNotFoundError: No module named 'uvicorn'\n");
+            queueMicrotask(() => {
+              child.exitCode = 1;
+              child.emit('exit', 1, null);
+            });
+          });
+          return child as unknown as ChildProcess;
+        },
+        sleep: () => Promise.resolve(),
+        now: () => new Date(),
+      },
+    });
+
+    const status = await manager.start();
+    expect(status.state).toBe('failed');
+    expect(status.error_code).toBe('BACKEND_EXITED');
+    expect(status.error_message).toContain('uvicorn');
+  });
+
   it('stop 后状态为 stopped 且 API 地址清空', async () => {
     const { manager } = createManager();
     await manager.start();

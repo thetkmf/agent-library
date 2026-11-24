@@ -185,6 +185,7 @@ export class BackendManager {
   private running = false;
   private exitedDuringStart = false;
   private lastExitDetail: string | null = null;
+  private lastStderrLine: string | null = null;
   private status: BackendStatus;
 
   constructor(options: BackendManagerOptions) {
@@ -324,6 +325,7 @@ export class BackendManager {
 
     this.exitedDuringStart = false;
     this.lastExitDetail = null;
+    this.lastStderrLine = null;
 
     const env = buildBackendEnv({
       baseEnv: this.options.baseEnv ?? process.env,
@@ -370,7 +372,8 @@ export class BackendManager {
 
     if (this.exitedDuringStart) {
       const detail = this.lastExitDetail ? `（${this.lastExitDetail}）` : '';
-      return { ok: false, code: 'BACKEND_EXITED', message: `后端进程已退出${detail}` };
+      const reason = this.lastStderrLine ? `：${this.lastStderrLine}` : '';
+      return { ok: false, code: 'BACKEND_EXITED', message: `后端进程已退出${detail}${reason}` };
     }
     return {
       ok: false,
@@ -380,7 +383,11 @@ export class BackendManager {
   }
 
   private attachChild(child: ChildProcess): void {
-    const streamToLog = (stream: NodeJS.ReadableStream | null, level: 'info' | 'warn'): void => {
+    const streamToLog = (
+      stream: NodeJS.ReadableStream | null,
+      level: 'info' | 'warn',
+      rememberLast = false,
+    ): void => {
       if (!stream) {
         return;
       }
@@ -394,6 +401,9 @@ export class BackendManager {
           buffer = buffer.slice(index + 1);
           if (line.length > 0) {
             this.log[level]('backend.output', { line: line.slice(0, 500) });
+            if (rememberLast) {
+              this.lastStderrLine = line.slice(0, 200);
+            }
           }
           index = buffer.indexOf('\n');
         }
@@ -401,7 +411,7 @@ export class BackendManager {
     };
 
     streamToLog(child.stdout, 'info');
-    streamToLog(child.stderr, 'warn');
+    streamToLog(child.stderr, 'warn', true);
 
     child.on('error', (error) => {
       this.exitedDuringStart = true;
