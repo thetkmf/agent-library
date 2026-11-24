@@ -53,6 +53,12 @@ def capabilities(settings: Settings) -> dict[str, Any]:
             "external_calls_enabled": settings.privacy_allow_external_calls,
             "ready": has_key and settings.privacy_allow_external_calls,
         },
+        # B5 落地前本地嵌入模型未安装，状态固定 missing
+        "embedding": {
+            "model": settings.embedding_model,
+            "dimension": settings.embedding_dimension,
+            "status": "missing",
+        },
         "vector": {"ready": False, "indexed_count": 0},
         "storage": {"free_bytes": usage.free},
     }

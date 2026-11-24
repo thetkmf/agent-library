@@ -27,6 +27,14 @@ python ../scripts/export_openapi.py          # 导出契约
 python ../scripts/export_openapi.py --check  # 校验契约是否最新
 ```
 
+## 数据层（B1）
+
+- 数据库：SQLite，文件位于 `<PKB_DATA_DIR>/db/pkb.sqlite3`；连接时开启 `foreign_keys`、`WAL`、`busy_timeout`。
+- 迁移：Alembic，脚本在 `migrations/`；应用启动时自动 `upgrade head`（`PKB_AUTO_MIGRATE=false` 可关闭）。
+- 手动执行：`uv run alembic upgrade head`、`uv run alembic check`（校验模型与库是否漂移）、`uv run alembic revision --autogenerate -m "..."`。
+- 表：`items`、`tags`、`item_tags`、`file_assets`、`ai_tasks`、`conversations`、`messages`、`reminders`、`learning_plans`、`milestones`、`graph_nodes`、`graph_edges`、`user_profiles`、`app_settings`。
+- 约定：时间统一存 UTC（读出来带时区）、软删除用 `items.deleted_at`、可编辑资源带 `version` 乐观锁。
+
 ## 启动契约（Electron 主进程注入）
 
 | 环境变量 | 说明 |
@@ -37,6 +45,8 @@ python ../scripts/export_openapi.py --check  # 校验契约是否最新
 | `PKB_DATA_DIR` | 数据目录 |
 | `PKB_LOG_FILE` | 结构化日志文件路径（同时写 stdout） |
 | `PKB_LOG_LEVEL` | 日志级别 |
+| `PKB_AUTO_MIGRATE` | 启动时是否自动迁移（默认 `true`） |
+| `PKB_DATABASE_URL` | 覆盖数据库地址（测试用） |
 
 入口为 `python -m app.main`（或 `python -m app`）。
 
