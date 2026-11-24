@@ -285,6 +285,27 @@ describe('BackendManager', () => {
     expect(status.error_message).toContain('uvicorn');
   });
 
+  it('waitUntilReady 在后端就绪后返回 ready', async () => {
+    const { manager } = createManager();
+    await manager.start();
+    const status = await manager.waitUntilReady(1_000);
+    expect(status.state).toBe('ready');
+    expect(status.api_base_url).toBe('http://127.0.0.1:52341/api/v1');
+  });
+
+  it('waitUntilReady 在后端未找到时立即返回 failed', async () => {
+    const manager = new BackendManager({
+      launch: null,
+      token: 't',
+      dataDir: dir,
+      logFile,
+      logger: createLoggerForTest(),
+    });
+    await manager.start();
+    const status = await manager.waitUntilReady(1_000);
+    expect(status.state).toBe('failed');
+  });
+
   it('stop 后状态为 stopped 且 API 地址清空', async () => {
     const { manager } = createManager();
     await manager.start();

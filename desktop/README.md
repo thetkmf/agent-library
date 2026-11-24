@@ -85,7 +85,7 @@ desktop/
   shared/ipc.ts             # 主进程/preload/渲染进程共享的 IPC 类型与通道
   src/                      # 渲染进程（Web）
     app/                    # 路由表（导航定义驱动）、应用根组件
-    api/                    # F2：客户端、SSE、mappers、生成的类型
+    api/                    # 客户端（唯一 HTTP 入口）、SSE、错误映射、queryKey、生成的类型
     components/layout/      # AppShell / Sidebar / TopBar
     components/ui/          # 通用组件（Button / Panel / Badge / Empty / Error / Skeleton…）
     features/               # 按领域划分（system / theme / placeholders / 后续 notes、search…）
@@ -146,7 +146,31 @@ desktop/
 - [x] 首屏展示后端状态、端口、PID、数据目录、日志路径，支持「重启后端」
 - [x] 质量门禁：lint / typecheck / 单测（31 项）/ build / 冒烟 全绿
 
-## 7. F1 完成情况
+## 7. API 层约定（F2）
+
+| 文件 | 职责 |
+| --- | --- |
+| `src/api/generated.ts` | 由 `npm run gen:api` 从 `backend/openapi.json` 生成，**禁止手改** |
+| `src/api/client.ts` | 唯一 HTTP 入口：注入 token / `X-Request-Id` / 幂等键、超时、重试、信封解包 |
+| `src/api/errors.ts` | 错误码 → `ApiError(kind)`、用户可读文案、任意异常归一 |
+| `src/api/sse.ts` | 基于 fetch 流的 SSE 客户端（可带 Authorization）：拼帧、心跳、重连、取消 |
+| `src/api/keys.ts` | TanStack Query 的 `queryKey` 单一出口 |
+| `src/api/queries/` | 领域 hook（当前：`system`），页面只调用 hook |
+
+行为要点（与《开发接口标准》对齐）：
+
+| 项 | 实现 |
+| --- | --- |
+| 超时 | 默认 30s；AI 接口传 `timeoutMs: AI_TIMEOUT_MS`（120s） |
+| 重试 | 仅网络/超时/5xx/限流，且仅幂等请求（GET/DELETE 或带 `Idempotency-Key`），最多 2 次，指数退避 + 抖动 |
+| 401 | 通过 IPC 重新读取 token 并重试一次；仍失败进入错误态 |
+| 信封 | `{code,message,data,request_id}` 解包；`code !== 0` 抛 `ApiError`；`/health` 用 `expect: 'raw'` |
+| 409 | `30003` 标记 `isVersionConflict`，由编辑器提示「刷新/覆盖」（F3） |
+| 取消 | 传 `AbortSignal`，取消抛 `kind: 'aborted'` 且不重试 |
+| SSE | 网络中断按 1s→2s→4s…（≤15s）重连，最多 5 次；**服务端正常关闭视为完成不重连**；`terminalEvents`（如 `message.completed`）命中后主动结束；页面隐藏时暂停重连 |
+| 未就绪 | 后端未启动时 `kind: 'unavailable'`，不发请求 |
+
+## 8. F1 完成情况
 
 - [x] 应用外壳：左侧分组导航（可折叠、键盘可达、折叠后保留可访问名称）+ 顶栏 + 主内容 + 状态栏
 - [x] 路由：HashRouter（适配 `file://`），路由表由 `src/app/nav-items.ts` 驱动，导航与路由不会漂移
@@ -156,9 +180,19 @@ desktop/
 - [x] 可访问性：跳转主内容链接、`aria-current`、`role=alert`、`aria-busy`、`prefers-reduced-motion`
 - [x] 测试：新增 store / Sidebar / 路由 / 状态组件测试，合计 47 项
 
+## 9. F2 完成情况
+
+- [x] `npm run gen:api` 打通，`src/api/generated.ts` 与 `backend/openapi.json` 同步（当前 3 个系统接口）
+- [x] `client.ts` 统一入口：信封解包、错误码映射、30s/120s 超时、幂等重试、401 刷新、请求取消
+- [x] `errors.ts`：已登记错误码全覆盖映射（认证/冲突/校验/限流/AI/存储）+ 中文兜底文案
+- [x] `sse.ts`：拼帧、心跳忽略、指数退避重连、终止事件、页面隐藏暂停、用户取消
+- [x] `keys.ts` + `queries/system.ts`：queryKey 单一出口；系统状态页用真实接口自检（`/health`、`/system/info`、`/system/capabilities`）
+- [x] 修复：后端后启动时 `api_base_url` 未同步到启动上下文，导致 API 客户端停留在「未就绪」
+- [x] 测试：新增 39 项（client/errors/sse/hook），合计 88 项；含真实后端冒烟截图
+
 已知限制（后续任务处理）：
 
 - 后端尚未实现（B0），因此当前状态常为 `BACKEND_NOT_FOUND`；后端就绪后无需改前端即可自动接管
 - 打包与安装包（electron-builder + PyInstaller）属于 F12
-- API 客户端、类型生成、SSE 属于 F2；`backend/openapi.json` 已产出，待 B13 完成后执行 `npm run gen:api`
+- 接口类型目前只覆盖 B0 产出的系统接口；B1–B12 完成后重跑 `npm run gen:api` 即可扩展（B13 固化）
 - 各业务页面（笔记、检索、AI、提醒、图谱…）分别由 F3–F11 实现，当前为占位页

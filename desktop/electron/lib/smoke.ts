@@ -14,7 +14,18 @@ export interface SmokeResult {
  * 无头冒烟检查：仅用于 CI / 本地 `npm run smoke`。
  * 校验渲染进程成功挂载、preload 桥可用、首屏文案存在，随后退出进程。
  */
-export function runSmokeCheck(window: BrowserWindow, logger: Logger, timeoutMs = 15_000): void {
+export interface SmokeOptions {
+  /** 等待后端就绪（PKB_SMOKE_WAIT_BACKEND=1 时生效），便于截取真实联调状态 */
+  waitForBackend?: () => Promise<unknown>;
+  screenshotPath?: string | undefined;
+}
+
+export function runSmokeCheck(
+  window: BrowserWindow,
+  logger: Logger,
+  options: SmokeOptions = {},
+  timeoutMs = 20_000,
+): void {
   const finish = (code: number): void => {
     setTimeout(() => {
       window.destroy();
@@ -27,8 +38,11 @@ export function runSmokeCheck(window: BrowserWindow, logger: Logger, timeoutMs =
     finish(1);
   }, timeoutMs);
 
+  const waitForBackend = process.env.PKB_SMOKE_WAIT_BACKEND === '1' ? options.waitForBackend : undefined;
+
   window.webContents.once('did-finish-load', () => {
-    void prepareWindow(window, logger)
+    void Promise.resolve(waitForBackend?.())
+      .then(() => prepareWindow(window, logger))
       .then(() => window.webContents.executeJavaScript(
         `(() => {
           const root = document.getElementById('root');
@@ -47,7 +61,9 @@ export function runSmokeCheck(window: BrowserWindow, logger: Logger, timeoutMs =
         clearTimeout(timer);
         logger.info('smoke.result', { ...result });
         const ok = result.has_root && result.has_bridge && result.has_nav && result.has_backend_badge;
-        void captureScreenshot(window, logger).finally(() => finish(ok ? 0 : 1));
+        void captureScreenshot(window, logger, options.screenshotPath).finally(() =>
+          finish(ok ? 0 : 1),
+        );
       })
       .catch((error: unknown) => {
         clearTimeout(timer);
@@ -60,8 +76,12 @@ export function runSmokeCheck(window: BrowserWindow, logger: Logger, timeoutMs =
 }
 
 /** 可选：PKB_SMOKE_SCREENSHOT 指定路径时，把首屏截图落盘，便于人工/CI 留档 */
-async function captureScreenshot(window: BrowserWindow, logger: Logger): Promise<void> {
-  const target = process.env.PKB_SMOKE_SCREENSHOT;
+async function captureScreenshot(
+  window: BrowserWindow,
+  logger: Logger,
+  override?: string,
+): Promise<void> {
+  const target = override ?? process.env.PKB_SMOKE_SCREENSHOT;
   if (!target) {
     return;
   }

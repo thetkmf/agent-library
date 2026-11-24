@@ -144,7 +144,9 @@ async function bootstrap(): Promise<void> {
   }
 
   if (process.env.PKB_SMOKE === '1') {
-    runSmokeCheck(mainWindow, logger);
+    runSmokeCheck(mainWindow, logger, {
+      waitForBackend: () => backend.waitUntilReady(30_000),
+    });
   }
 
   // 窗口先展示，再启动后端，避免用户看到空白等待

@@ -298,6 +298,21 @@ export class BackendManager {
     });
   }
 
+  /** 等待后端就绪（供冒烟/自动化使用）；超时返回当前状态，不抛错 */
+  async waitUntilReady(timeoutMs = 30_000, pollIntervalMs = 200): Promise<BackendStatus> {
+    const deadline = this.deps.now().getTime() + timeoutMs;
+    for (;;) {
+      const status = this.getStatus();
+      if (status.state === 'ready' || status.state === 'failed' || status.state === 'stopped') {
+        return status;
+      }
+      if (this.deps.now().getTime() >= deadline) {
+        return status;
+      }
+      await this.deps.sleep(pollIntervalMs);
+    }
+  }
+
   async restart(): Promise<BackendStatus> {
     this.log.info('backend.restart_requested');
     await this.stop();

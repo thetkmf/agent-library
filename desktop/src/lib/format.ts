@@ -58,3 +58,22 @@ export function maskSecret(value: string | null | undefined): string {
   }
   return `${value.slice(0, 4)}…${value.slice(-4)}`;
 }
+
+/** 字节数 → 人类可读（1.2 GB），用于存储/文件展示 */
+export function formatBytes(bytes: number | null | undefined): string {
+  if (bytes === null || bytes === undefined || Number.isNaN(bytes) || bytes < 0) {
+    return '—';
+  }
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  const units = ['KB', 'MB', 'GB', 'TB'];
+  let value = bytes / 1024;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  const digits = value >= 100 ? 0 : 1;
+  return `${value.toFixed(digits)} ${units[unitIndex] ?? 'B'}`;
+}
