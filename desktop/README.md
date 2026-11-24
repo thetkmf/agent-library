@@ -198,7 +198,22 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - [x] 可访问性：跳转主内容链接、`aria-current`、`role=alert`、`aria-busy`、`prefers-reduced-motion`
 - [x] 测试：新增 store / Sidebar / 路由 / 状态组件测试，合计 47 项
 
-## 8.1 F6 检索（Mock 先行，待 B6 切真实）
+## 8.1 F7 AI 对话（F7-1/F7-2，Mock 先行，待 B7 切真实）
+
+| 能力 | 实现 |
+| --- | --- |
+| 会话 | 列表/新建/删除；URL `/agent/{id}` 直达，切换会话时以服务端消息为准 |
+| 流式对话 | `POST /agent/chat`（SSE over fetch）：`message.started` → 多段 `message.delta` 追加 → `message.completed` 收尾；`terminalEvents` 命中后主动关闭连接 |
+| 停止 | 「停止」调用 `close()` → AbortController 取消，已生成内容保留并标记「已停止生成」 |
+| 错误与重连 | 网络类错误按 1s→15s 退避重连（≤5 次）；参数/404/401 不重连；失败可一键重试上一问 |
+| 渲染 | 助手消息走 Markdown + DOMPurify 白名单净化；用户消息按纯文本保留换行 |
+| 引用 | 消息下方引用 chip（标题 + 分数），点击跳 `/notes/:id`（F7-3 继续完善上下文选择器） |
+| 状态 | 空会话引导、生成中提示、停止提示、错误提示、会话删除后回到新建态 |
+
+> `/agent/*` 目前由 `src/mocks/agent.ts` 提供（B7 未产出）；B7 合入后删除 mock、重跑 `gen:api`、切真实契约。
+> 待办：F7-3 上下文选择器、F7-4 任务中心、F7-5 建议采纳。
+
+## 8.2 F6 检索（Mock 先行，待 B6 切真实）
 
 | 能力 | 实现 |
 | --- | --- |
@@ -213,7 +228,7 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 > `/search`、`/index/status`、`/index/reindex` 目前由 `src/mocks/search.ts` 提供（B6 未产出）；
 > B6 合入后删除 mock、重跑 `gen:api`、切真实契约（F6-4）。
 
-## 8.2 F5 文件管理
+## 8.3 F5 文件管理
 
 | 能力 | 实现 |
 | --- | --- |
@@ -225,7 +240,7 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 | 下载 | 带鉴权下载 blob，文件名优先取 `Content-Disposition` 的 RFC 5987 字段；不拼本地路径 |
 | 预览 | 图片/纯文本走 blob + object URL，关闭即 `revokeObjectURL`；其他类型提示下载查看 |
 
-## 8.3 F4 时间轴与标签
+## 8.4 F4 时间轴与标签
 
 | 能力 | 实现 |
 | --- | --- |
@@ -240,7 +255,7 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 
 测试覆盖：分组边界（含跨年 ISO 周）、时区换算、筛选解析与 URL 往返、虚拟窗口区间、1 万条性能用例、页面级筛选/批量打标、批量部分失败重试。
 
-## 8.4 F3 编辑器（笔记 / TeX）
+## 8.5 F3 编辑器（笔记 / TeX）
 
 | 能力 | 实现 |
 | --- | --- |

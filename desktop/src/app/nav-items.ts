@@ -91,8 +91,7 @@ export const NAV_SECTIONS: NavSection[] = [
         label: 'AI 对话',
         description: '基于本地知识库的流式问答与引用',
         icon: MessageSquare,
-        stage: 'planned',
-        milestone: 'M2',
+        stage: 'ready',
       },
       {
         id: 'tasks',

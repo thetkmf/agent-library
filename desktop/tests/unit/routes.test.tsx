@@ -48,6 +48,8 @@ describe('AppRoutes', () => {
       );
       if (item.id === 'notes') {
         expect(screen.getByRole('heading', { name: '全部条目' })).toBeInTheDocument();
+      } else if (item.id === 'agent') {
+        expect(screen.getByRole('region', { name: '对话' })).toBeInTheDocument();
       } else if (item.id === 'search') {
         expect(screen.getByTestId('index-status-card')).toBeInTheDocument();
       } else if (item.id === 'files') {

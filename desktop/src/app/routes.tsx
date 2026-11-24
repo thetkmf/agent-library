@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { NAV_ITEMS } from '@/app/nav-items';
 import { PlannedPage, HomePage, NotFoundPage } from '@/features/placeholders/PlannedPage';
+import { AgentPage } from '@/features/agent/AgentPage';
 import { FilesPage } from '@/features/files/FilesPage';
 import { SearchPage } from '@/features/search/SearchPage';
 import { NoteEditorPage } from '@/features/notes/NoteEditorPage';
@@ -22,6 +23,8 @@ export function AppRoutes(): JSX.Element {
       <Route path="/notes/:itemId" element={<NoteEditorPage />} />
       <Route path="/files" element={<FilesPage />} />
       <Route path="/search" element={<SearchPage />} />
+      <Route path="/agent" element={<AgentPage />} />
+      <Route path="/agent/:conversationId" element={<AgentPage />} />
       <Route path="/timeline" element={<TimelinePage />} />
       {NAV_ITEMS.filter((item) => item.stage === 'planned' || item.id === 'system-status').map((item) =>
         item.stage === 'ready' ? (
