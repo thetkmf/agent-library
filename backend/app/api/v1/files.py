@@ -7,14 +7,15 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, File, Form, Header, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Header, Request, UploadFile
 from fastapi.responses import Response, StreamingResponse
 
 from ...core.envelope import envelope
 from ...core.errors import AppError
 from ...schemas.common import Envelope, ErrorEnvelope
-from ...schemas.files import UploadResult
+from ...schemas.files import ChunkResult, UploadInitOut, UploadInitRequest, UploadResult
 from ...services import files as files_service
+from ...services import uploads as uploads_service
 from ...services.storage import CHUNK_READ_SIZE
 from ..deps import SessionDep, SettingsDep, require_token
 
@@ -134,3 +135,47 @@ def download_file(
         media_type=media_type,
         headers=headers,
     )
+
+
+@router.post(
+    "/uploads",
+    response_model=Envelope[UploadInitOut],
+    status_code=201,
+    responses=_ERROR_RESPONSES,
+    summary="初始化分片上传会话",
+)
+def init_upload(
+    session: SessionDep, settings: SettingsDep, payload: UploadInitRequest
+) -> dict[str, Any]:
+    """Create a 24h upload session and return the chunk plan."""
+    _ = session
+    return envelope(uploads_service.init_session(settings, payload))
+
+
+@router.put(
+    "/uploads/{upload_id}/chunks/{index}",
+    response_model=Envelope[ChunkResult],
+    responses=_ERROR_RESPONSES,
+    summary="上传单个分片（可乱序 / 重传）",
+)
+async def put_upload_chunk(
+    settings: SettingsDep,
+    upload_id: str,
+    index: int,
+    request: Request,
+) -> dict[str, Any]:
+    """Store one chunk of a chunked upload session."""
+    payload = b"".join([chunk async for chunk in request.stream()])
+    return envelope(uploads_service.put_chunk(settings, upload_id, index, payload))
+
+
+@router.post(
+    "/uploads/{upload_id}/complete",
+    response_model=Envelope[UploadResult],
+    responses=_ERROR_RESPONSES,
+    summary="完成分片上传（校验整体 sha256，幂等）",
+)
+def complete_upload(session: SessionDep, settings: SettingsDep, upload_id: str) -> dict[str, Any]:
+    """Assemble chunks into a file item; repeated calls return the same result."""
+    result, _replay = uploads_service.complete_session(session, settings, upload_id)
+    return envelope(result)

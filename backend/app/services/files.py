@@ -64,6 +64,7 @@ def create_file_item(
     title: str | None = None,
     tags: list[str] | None = None,
     max_bytes: int | None = None,
+    expected_sha256: str | None = None,
 ) -> UploadResult:
     """Store the bytes then create item + file asset in one transaction."""
     storage = StorageService(settings)
@@ -74,6 +75,13 @@ def create_file_item(
         chunks=chunks,
         max_bytes=max_bytes if max_bytes is not None else settings.max_small_file_bytes,
     )
+    if expected_sha256 is not None and stored.sha256 != expected_sha256:
+        storage.delete(stored.relative_path)
+        raise AppError(
+            ErrorCode.UPLOAD_INCOMPLETE,
+            "整体 sha256 校验失败，请重新上传",
+            details={"expected": expected_sha256, "actual": stored.sha256},
+        )
 
     resolved_title = (title or "").strip() or stored.original_name
     if len(resolved_title) > TITLE_MAX_LENGTH:
