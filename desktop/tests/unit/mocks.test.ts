@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { apiRequest } from '@/api/client';
 import { configureApi, resetApiConfig } from '@/api/config';
 import { ApiError } from '@/api/errors';
-import { listMockItems, resetItemMocks, type MockItem } from '@/mocks/items';
+import { listMockItems, resetItemMocks, type MockItem } from '../fixtures/items-mock';
 import { createMockFetch, MOCK_BASE_URL } from '@/mocks/router';
-import { itemRoutes } from '@/mocks/items';
+import { itemRoutes } from '../fixtures/items-mock';
 
 interface PageData {
   items: MockItem[];

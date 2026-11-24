@@ -1,4 +1,4 @@
-# 契约 Mock（F3–F5 前置）
+# 契约 Mock（F4–F5 前置；条目 mock 已移除）
 
 B2–B4 后端接口未产出前，用与契约同形的 Mock 驱动 UI。规则见《开发过程》13.6。
 
@@ -21,10 +21,10 @@ localStorage.setItem('pkb.mock', '1')
 | --- | --- |
 | `router.ts` | fetch 层路由器：方法 + 去前缀路径匹配，支持延迟与回落真实 fetch |
 | `envelope.ts` | `ok()` / `fail()` 信封构造，与契约 3.1 / 3.2 一致 |
-| `items.ts` | F3 条目与正文接口；含种子数据、幂等键、409 冲突 |
+| `items.ts` | ~~F3 条目与正文接口~~ → 已由 B2 真实接口替代，夹具移至 `tests/fixtures/items-mock.ts` |
 | `index.ts` | 路由汇总、启用判断、安装入口 |
 
-## 场景索引（B2–B4 合入后按 id 删除）
+## 场景索引（B2 已合入：条目 mock 已删除；B3/B4 合入后继续按 id 删除）
 
 | Mock id | 接口 | 说明 |
 | --- | --- | --- |

@@ -5,52 +5,35 @@ import type { components } from '@/api/generated';
 import { queryKeys } from '@/api/keys';
 
 /**
- * 条目相关类型。
- * B2 产出前后 `openapi.json` 尚无 `/items`，此时用本地契约类型（对齐《开发接口标准》8.1）；
- * B2 合入后改为 `components['schemas']['ItemOut']`。
+ * 条目类型：直接取自 `src/api/generated.ts`（由 backend/openapi.json 生成）。
+ * B2 已产出 `/items` 契约，禁止在本文件手写重复模型。
  */
-export type ItemType = 'note' | 'tex' | 'file';
-export type ItemStatus = 'active' | 'archived' | 'trashed';
+export type Item = components['schemas']['ItemOut'];
+export type ItemPage = components['schemas']['Page_ItemOut_'];
 
-export interface TagRef {
-  id: string;
-  name: string;
-}
-
-export interface FileAsset {
-  id: string;
-  original_name: string;
-  mime_type: string;
-  size_bytes: number;
-  sha256: string;
-  download_url: string;
-  created_at: string;
-}
-
-export interface Item {
-  id: string;
-  type: ItemType;
-  title: string;
-  content: string | null;
-  preview: string;
-  tags: TagRef[];
-  file: FileAsset | null;
-  status: ItemStatus;
-  version: number;
-  embedding_status: 'pending' | 'indexed' | 'failed' | 'skipped';
-  ai_summary: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-}
-
-export interface ItemPage {
+/** 分页结果的收敛形态：契约中带默认值的字段在生成类型里是可选的 */
+export interface ItemPageData {
   items: Item[];
   page: number;
   page_size: number;
   total: number;
   has_more: boolean;
 }
+
+function normalizePage(page: ItemPage): ItemPageData {
+  return {
+    items: page.items ?? [],
+    page: page.page ?? 1,
+    page_size: page.page_size ?? 20,
+    total: page.total ?? 0,
+    has_more: page.has_more ?? false,
+  };
+}
+export type ItemType = Item['type'];
+export type ItemStatus = NonNullable<Item['status']>;
+export type TagRef = components['schemas']['TagRef'];
+export type CreateItemInput = components['schemas']['ItemCreate'];
+export type UpdateItemInput = components['schemas']['ItemUpdate'];
 
 export interface ItemListQuery {
   page?: number;
@@ -65,16 +48,10 @@ export interface ItemListQuery {
   order?: 'asc' | 'desc';
 }
 
-export interface CreateItemInput {
-  type: ItemType;
-  title: string;
-  content?: string;
-  tags?: string[];
-}
-
 export const itemsApi = {
-  list: (query: ItemListQuery = {}) =>
-    apiRequest<ItemPage>('/items', {
+  list: async (query: ItemListQuery = {}): Promise<ItemPageData> =>
+    normalizePage(
+      await apiRequest<ItemPage>('/items', {
       query: {
         page: query.page,
         page_size: query.page_size,
@@ -85,9 +62,10 @@ export const itemsApi = {
         created_from: query.created_from,
         created_to: query.created_to,
         sort: query.sort,
-        order: query.order,
-      },
-    }),
+          order: query.order,
+        },
+      }),
+    ),
   get: (id: string) => apiRequest<Item>(`/items/${encodeURIComponent(id)}`),
   content: (id: string) =>
     apiRequest<string>(`/items/${encodeURIComponent(id)}/content`, {
@@ -101,8 +79,10 @@ export const itemsApi = {
       idempotencyKey: idempotencyKey ?? crypto.randomUUID(),
       retries: 0,
     }),
-  patch: (id: string, body: { title?: string; status?: ItemStatus }) =>
-    apiRequest<Item>(`/items/${encodeURIComponent(id)}`, { method: 'PATCH', body }),
+  patch: (id: string, body: UpdateItemInput) =>
+    apiRequest<Item>(`/items/${encodeURIComponent(id)}`, { method: 'PATCH', body, retries: 0 }),
+  remove: (id: string) =>
+    apiRequest<{ id: string }>(`/items/${encodeURIComponent(id)}`, { method: 'DELETE', retries: 0 }),
   saveContent: (id: string, content: string, expectedVersion: number) =>
     apiRequest<Item>(`/items/${encodeURIComponent(id)}/content`, {
       method: 'PUT',
@@ -162,8 +142,7 @@ export function useCreateItem() {
 export function usePatchItem() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: { title?: string; status?: ItemStatus } }) =>
-      itemsApi.patch(id, body),
+    mutationFn: ({ id, body }: { id: string; body: UpdateItemInput }) => itemsApi.patch(id, body),
     onSuccess: (item) => {
       queryClient.setQueryData(queryKeys.items.detail(item.id), item);
       void queryClient.invalidateQueries({ queryKey: queryKeys.items.lists() });
@@ -186,7 +165,7 @@ export function useSaveContent() {
       queryClient.setQueryData(queryKeys.items.detail(item.id), item);
     },
     onError: (error) => {
-      // 版本冲突时把服务端当前对象写回详情缓存，供「刷新」路径使用
+      // 版本冲突时把服务端当前对象写回详情缓存，供「刷新 / 覆盖」路径使用
       if (error instanceof ApiError && error.isVersionConflict && error.details) {
         const current = error.details as Item;
         if (current && typeof current === 'object' && 'id' in current) {
@@ -201,5 +180,3 @@ export function useSaveContent() {
 export function invalidateItems(queryClient: QueryClient): Promise<void> {
   return queryClient.invalidateQueries({ queryKey: queryKeys.items.all });
 }
-
-export type GeneratedSchemas = components['schemas'];

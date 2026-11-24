@@ -40,9 +40,9 @@ function ItemRow({ item }: { item: Item }): JSX.Element {
             {item.preview ? (
               <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted">{item.preview}</p>
             ) : null}
-            {item.tags.length > 0 ? (
+            {(item.tags?.length ?? 0) > 0 ? (
               <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="标签">
-                {item.tags.map((tag) => (
+                {(item.tags ?? []).map((tag) => (
                   <li
                     key={tag.id}
                     className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted"

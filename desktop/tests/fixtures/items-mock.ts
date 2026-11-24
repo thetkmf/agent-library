@@ -1,10 +1,12 @@
 /**
- * 条目 Mock 数据与处理器（F3；部分列表能力供 F4 复用）
- * 字段严格对齐《开发接口标准》8.1 Item，不新增字段。
+ * 条目 Mock 数据与处理器 —— 仅测试使用。
+ *
+ * B2 已产出真实 `/items` 契约，产品代码中的 mock 已删除；这份数据保留为
+ * UI 回归测试的夹具（字段对齐《开发接口标准》8.1 Item）。
  */
 import { API_ERROR_CODES } from '@/api/errors';
-import { fail, ok } from './envelope';
-import type { MockRoute } from './router';
+import { fail, ok } from '@/mocks/envelope';
+import type { MockRoute } from '@/mocks/router';
 
 export type MockItemType = 'note' | 'tex' | 'file';
 export type MockItemStatus = 'active' | 'archived' | 'trashed';

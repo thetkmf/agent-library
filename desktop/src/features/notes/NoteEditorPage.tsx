@@ -131,7 +131,7 @@ function EditorWorkspace({ item, initialContent }: EditorWorkspaceProps): JSX.El
     if (next === item.title) {
       return;
     }
-    patchItem.mutate({ id: item.id, body: { title: next } });
+    patchItem.mutate({ id: item.id, body: { title: next, expected_version: item.version } });
   };
 
   /** 冲突路径一：使用服务端版本（丢弃本地改动） */

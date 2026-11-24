@@ -6,7 +6,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { configureApi, resetApiConfig } from '@/api/config';
 import { itemsApi } from '@/api/queries/items';
-import { listMockItems, resetItemMocks, itemRoutes } from '@/mocks/items';
+import { listMockItems, resetItemMocks, itemRoutes } from '../fixtures/items-mock';
 import { createMockFetch, MOCK_BASE_URL } from '@/mocks/router';
 import { NotesListPage } from '@/features/notes/NotesListPage';
 import { NewNotePage } from '@/features/notes/NewNotePage';

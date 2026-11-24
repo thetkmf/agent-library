@@ -171,16 +171,18 @@ desktop/
 | SSE | 网络中断按 1s→2s→4s…（≤15s）重连，最多 5 次；**服务端正常关闭视为完成不重连**；`terminalEvents`（如 `message.completed`）命中后主动结束；页面隐藏时暂停重连 |
 | 未就绪 | 后端未启动时 `kind: 'unavailable'`，不发请求 |
 
-## 7.1 契约 Mock（F3–F5 前置）
+## 7.1 契约 Mock（F4–F5 前置）
 
-B2–B4 后端接口未产出前，用 Mock 驱动 UI（约定见《开发过程》13.6）：
+`/items` 已由 B2 产出并切到真实接口；条目 mock 已移出产品代码，仅保留为
+UI 回归测试夹具（`tests/fixtures/items-mock.ts`）。`/timeline`、`/tags`、`/files`
+等 B3/B4 接口未产出前，仍按《开发过程》13.6 用 mock 驱动：
 
 ```bash
 VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 # 运行态：DevTools 执行 localStorage.setItem('pkb.mock','1') 后刷新
 ```
 
-- 位置：`src/mocks/`（`README.md` 内有场景索引，按 `F3/*` 等 id 与任务对应）
+- 位置：`src/mocks/`（`README.md` 内有场景索引，按任务 id 对应）；测试夹具在 `tests/fixtures/`
 - 只替换 fetch 实现，请求仍走 `src/api/client.ts`，信封/超时/重试/错误映射一致
 - 未覆盖路径返回 `30001` 信封并提示，避免静默通过
 - B2–B4 合入后：删除对应 mock、`npm run gen:api`、切真实接口
@@ -202,7 +204,7 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 | 路由 | `/notes`（列表）、`/notes/new`（新建）、`/notes/:itemId`（编辑）；深链接直达，未知 id 显示 404 态 |
 | 编辑器 | CodeMirror 6 受控封装（`CodeMirrorEditor`），Markdown / TeX 语法高亮，行号与历史快捷键 |
 | 预览 | Markdown 走 `marked` + DOMPurify 白名单净化；TeX 走 KaTeX（`throwOnError`，失败提示不阻塞编辑） |
-| 新建 | 类型（note/tex）创建后不可改；`Idempotency-Key` 页面实例内复用，重复点击不会建重复条目 |
+| 新建 | 类型（note/tex）创建后不可改；`Idempotency-Key` 页面实例内复用，重复点击不会建重复条目（已对真实后端验证回放） |
 | 自动保存 | 停止输入 800ms 后保存；`PUT /items/{id}/content?expected_version=` + `text/plain`；串行写（同一时刻仅一个请求），成功更新本地 `version` |
 | 版本冲突 | 409/`30003` → 弹窗「使用服务端版本 / 保留本地并覆盖 / 稍后处理」；两条路径都有集成测试 |
 | 草稿与离开保护 | 草稿按条目 id + 基线版本存 localStorage；崩溃/刷新后可恢复；有未保存改动时导航二次确认 + `beforeunload` |
@@ -224,6 +226,6 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 
 - 后端尚未实现（B0），因此当前状态常为 `BACKEND_NOT_FOUND`；后端就绪后无需改前端即可自动接管
 - 打包与安装包（electron-builder + PyInstaller）属于 F12
-- 接口类型目前只覆盖 B0 产出的系统接口；B1–B12 完成后重跑 `npm run gen:api` 即可扩展（B13 固化）
+- 接口类型当前覆盖系统接口与 B2 的 `/items`；后续 B3–B12 完成后重跑 `npm run gen:api` 扩展（B13 固化）
 - 检索、AI、提醒、图谱、设置等页面分别由 F6–F11 实现，当前为占位页
-- F3 的条目接口暂用 `src/mocks`（B2 未产出）；B2 合入后删除 mock 并重跑 `gen:api`
+- F3 已切真实 `/items`（B2），并按真实契约验证了创建/正文读写/409 冲突/幂等回放
