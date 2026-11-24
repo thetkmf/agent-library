@@ -1,15 +1,14 @@
 import { configureApi, getApiConfig } from '@/api/config';
 import { createMockFetch, MOCK_BASE_URL, type MockRoute } from './router';
-import { searchMockRoutes } from './search';
 import { agentMockRoutes } from './agent';
 /**
  * 当前仍需要的 mock 路由。
  * B2（`/items`）与 B3（`/timeline`、`/tags`）均已合入，条目/时间轴/标签的
  * 产品 mock 已移除，仅保留测试夹具（`tests/fixtures/`）。
- * 目前 F6 的 `/search`、`/index/status`、`/index/reindex` 与 F7 的 `/agent/*` 由 mock 提供
- * （B6/B7 未产出）；对应 B 任务合入后按 13.6 删除并切真实契约。
+ * F6 的 `/search`、`/index/status`、`/index/reindex` 已切真实接口（B6）；
+ * 目前仅 F7 的 `/agent/*` 仍由 mock 提供（B7 已产出，待切真实）。
  */
-export const mockRoutes: MockRoute[] = [...searchMockRoutes, ...agentMockRoutes];
+export const mockRoutes: MockRoute[] = [...agentMockRoutes];
 
 /**
  * 是否启用契约 Mock：
