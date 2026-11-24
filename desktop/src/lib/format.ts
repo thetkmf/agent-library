@@ -48,6 +48,22 @@ export function formatRelativeTime(iso: string | null | undefined): string {
   return formatDateTime(iso);
 }
 
+/** 只显示本地时区的时:分，用于时间轴卡片 */
+export function formatClockTime(iso: string | null | undefined): string {
+  if (!iso) {
+    return '—';
+  }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return '—';
+  }
+  return new Intl.DateTimeFormat('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+}
+
 /** token 只显示首尾各 4 位，避免整串出现在界面上 */
 export function maskSecret(value: string | null | undefined): string {
   if (!value) {

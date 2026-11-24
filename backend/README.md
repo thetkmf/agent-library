@@ -40,6 +40,14 @@ python ../scripts/export_openapi.py --check  # 校验契约是否最新
 | GET | `/items/{id}/content` | 正文原文，`text/plain`，不使用信封 |
 | PUT | `/items/{id}/content?expected_version=N` | 正文保存，返回 `ItemOut`，版本递增 |
 
+| GET | `/tags` | 标签列表，含 `item_count`（只统计 active 且未删除条目） |
+| POST | `/tags` | 创建标签：trim + NFC，ASCII 不区分大小写判重（重复 409 + 30002） |
+| PATCH | `/tags/{id}` | 重命名标签 |
+| DELETE | `/tags/{id}` | 删除标签并级联解除关联（条目保留） |
+| POST | `/items/{id}/tags` | 批量关联标签（幂等，未知标签 404） |
+| DELETE | `/items/{id}/tags/{tag_id}` | 解除单个标签关联 |
+| GET | `/timeline` | 时间轴分组：`from/to`、`group_by=day/week/month`、`tz`、`cursor`、`limit`，并支持 `type/status/tag_id/q`（默认 `status=active`） |
+
 ## 数据层（B1）
 
 - 数据库：SQLite，文件位于 `<PKB_DATA_DIR>/db/pkb.sqlite3`；连接时开启 `foreign_keys`、`WAL`、`busy_timeout`。
