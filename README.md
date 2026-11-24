@@ -10,6 +10,7 @@
 | 前端 | React 18 + TypeScript + Vite |
 | 后端 | Python 3.11 + FastAPI |
 | Agent | LangChain |
+| AI 模型 | DeepSeek（唯一供应商，OpenAI 兼容接口） |
 | 数据库 | SQLite + SQLAlchemy + Alembic |
 | 向量库 | ChromaDB（嵌入式） |
 | 契约 | OpenAPI 3.1（FastAPI 导出） |
