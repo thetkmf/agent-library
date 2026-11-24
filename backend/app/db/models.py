@@ -263,6 +263,7 @@ class Milestone(TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(16), default="todo", nullable=False)
     progress: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(UtcDateTime, default=None, nullable=True)
 
     plan: Mapped[LearningPlan] = relationship(back_populates="milestones")
 

@@ -91,6 +91,11 @@ Agent 约定：Key 从 `PKB_DEEPSEEK_API_KEY` 或 Windows 凭据管理器读取�
 
 调度：进程内 APScheduler（每条提醒一个 `date` 作业 + 60s 兜底扫描），启动重建并在关停时释放；启动/唤醒时补发已到点但未通知过的提醒（`last_notified_at` 保证每次 occurrence 只发一次）。
 
+| GET/POST | `/learning/plans` | 列表（`status` 过滤）与创建（可带里程碑；`target_date >= start_date`） |
+| GET/PATCH/DELETE | `/learning/plans/{id}` | 详情/更新（必须带 `expected_version`，冲突 409 + 30003 且 `data` 为当前计划）/删除（级联里程碑） |
+| POST/PATCH/DELETE | `/learning/plans/{id}/milestones`、`/learning/milestones/{id}` | 里程碑增改删，任何变更让所属计划 `version+1`；`status=done` 强制 100% 并记 `completed_at`，100% 自动 done，0<进度<100 且未给状态置 `in_progress`，重开清空 `completed_at` |
+| GET | `/learning/progress` | `{total_plans,active_plans,done_plans,completion_rate,milestone_total,milestone_done,streak_days,updated_at}` |
+
 ## 向量（B5a）
 
 - 依赖：`chromadb`（持久化，数据目录 `chroma/`）、`fastembed` + `onnxruntime`（本地推理 `bge-small-zh-v1.5`，512 维）。
