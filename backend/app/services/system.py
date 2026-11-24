@@ -9,6 +9,7 @@ from typing import Any
 
 from ..core.config import API_VERSION, MODEL_PROVIDER, Settings
 from ..core.paths import build_layout
+from .embedding import EmbeddingService
 
 
 def _existing_ancestor(path: Path) -> Path:
@@ -40,11 +41,14 @@ def has_model_key() -> bool:
     return False
 
 
-def capabilities(settings: Settings) -> dict[str, Any]:
+def capabilities(
+    settings: Settings, *, vector_ready: bool = False, indexed_count: int = 0
+) -> dict[str, Any]:
     """Build the /system/capabilities payload."""
     layout = build_layout(settings)
     usage = shutil.disk_usage(str(_existing_ancestor(layout.data_dir)))
     has_key = has_model_key()
+    embedding = EmbeddingService(settings).describe()
     return {
         "ai": {
             "provider": MODEL_PROVIDER,
@@ -53,12 +57,14 @@ def capabilities(settings: Settings) -> dict[str, Any]:
             "external_calls_enabled": settings.privacy_allow_external_calls,
             "ready": has_key and settings.privacy_allow_external_calls,
         },
-        # B5 落地前本地嵌入模型未安装，状态固定 missing
         "embedding": {
-            "model": settings.embedding_model,
-            "dimension": settings.embedding_dimension,
-            "status": "missing",
+            "model": embedding.model,
+            "dimension": embedding.dimension,
+            "status": embedding.status,
         },
-        "vector": {"ready": False, "indexed_count": 0},
+        "vector": {
+            "ready": vector_ready and embedding.ready,
+            "indexed_count": indexed_count,
+        },
         "storage": {"free_bytes": usage.free},
     }

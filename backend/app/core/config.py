@@ -42,6 +42,12 @@ DEFAULT_ALLOWED_EXTENSIONS = (
 MAX_SMALL_FILE_BYTES = 50 * 1024 * 1024
 MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024
 DEFAULT_CHUNK_SIZE_BYTES = 8 * 1024 * 1024
+EMBEDDING_MODEL_DIRNAME = "models"
+EMBEDDING_BATCH_SIZE = 32
+EMBEDDING_MAX_WORKERS = 2
+CHUNK_SIZE_CHARS = 800
+CHUNK_OVERLAP_CHARS = 100
+CHUNK_MAX_PER_ITEM = 400
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
 _LOOPBACK_NAMES = frozenset({"localhost", "::1", "0:0:0:0:0:0:0:1"})
 
@@ -105,6 +111,14 @@ class Settings(BaseSettings):
     max_small_file_bytes: int = Field(default=MAX_SMALL_FILE_BYTES, ge=1)
     max_file_bytes: int = Field(default=MAX_FILE_BYTES, ge=1)
     chunk_size_bytes: int = Field(default=DEFAULT_CHUNK_SIZE_BYTES, ge=1024)
+    # 向量嵌入（本地推理，不经过 DeepSeek）
+    embedding_model_dir: Path | None = None
+    embedding_model_sha256: str | None = None
+    embedding_batch_size: int = Field(default=EMBEDDING_BATCH_SIZE, ge=1, le=256)
+    embedding_max_workers: int = Field(default=EMBEDDING_MAX_WORKERS, ge=1, le=8)
+    chunk_chars: int = Field(default=CHUNK_SIZE_CHARS, ge=100, le=4000)
+    chunk_overlap_chars: int = Field(default=CHUNK_OVERLAP_CHARS, ge=0, le=1000)
+    chunk_max_per_item: int = Field(default=CHUNK_MAX_PER_ITEM, ge=1, le=5000)
 
     @field_validator("host")
     @classmethod

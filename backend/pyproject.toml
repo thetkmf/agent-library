@@ -16,6 +16,10 @@ dependencies = [
   "alembic>=1.13",
   # POST /files、分片上传解析 multipart 表单所需
   "python-multipart>=0.0.9",
+  # 本地向量：Chroma 持久化 + fastembed/onnxruntime 推理（不联网可用测试嵌入器替代）
+  "chromadb>=1.0,<2.0",
+  "fastembed>=0.3",
+  "onnxruntime>=1.20",
   # Windows 不自带 IANA 时区库；/timeline 的 tz 参数依赖 zoneinfo 数据。
   "tzdata>=2024.1",
 ]
