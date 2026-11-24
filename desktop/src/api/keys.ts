@@ -18,4 +18,13 @@ export const queryKeys = {
     info: () => [...queryKeys.system.all, 'info'] as const,
     capabilities: () => [...queryKeys.system.all, 'capabilities'] as const,
   },
+  timeline: {
+    all: ['timeline'] as const,
+    lists: () => [...queryKeys.timeline.all, 'list'] as const,
+    list: (query: object = {}) => [...queryKeys.timeline.lists(), query] as const,
+  },
+  tags: {
+    all: ['tags'] as const,
+    list: () => [...queryKeys.tags.all, 'list'] as const,
+  },
 } as const;
