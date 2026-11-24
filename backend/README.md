@@ -53,6 +53,12 @@ python ../scripts/export_openapi.py --check  # 校验契约是否最新
 
 上传限制：扩展名白名单（md/tex/txt/pdf/docx/pptx/xlsx/png/jpg/webp/svg/mp3/wav/mp4/zip）、MIME 与扩展名明显不符拒绝、文件名清洗后为空拒绝；超限 `40004`、类型不支持 `40003`；失败整体回滚且不留孤儿文件。
 
+| POST | `/uploads` | 初始化分片上传：`{original_name, size_bytes, mime_type, sha256, title?, tags?}` → `{upload_id, chunk_size, chunk_count}` |
+| PUT | `/uploads/{upload_id}/chunks/{index}` | 上传分片（`application/octet-stream`，可乱序/重传），返回 `{index, sha256}` |
+| POST | `/uploads/{upload_id}/complete` | 校验缺片与整体 sha256 后组装为文件条目，幂等返回 `{item, file_asset}` |
+
+分片默认 8 MB（5–20 MB 可配），会话 24 小时过期（`30001`），缺片/校验失败 `40005`，启动时清理过期会话。
+
 ## 数据层（B1）
 
 - 数据库：SQLite，文件位于 `<PKB_DATA_DIR>/db/pkb.sqlite3`；连接时开启 `foreign_keys`、`WAL`、`busy_timeout`。

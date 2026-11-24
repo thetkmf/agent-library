@@ -17,6 +17,7 @@ from .core.middleware import RequestContextMiddleware
 from .core.paths import ensure_layout
 from .db.migrate import run_migrations
 from .db.session import create_engine_for, create_session_factory
+from .services.uploads import cleanup_expired
 
 logger = get_logger("pkb.app")
 
@@ -28,6 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     layout = ensure_layout(settings)
     if settings.auto_migrate:
         run_migrations(settings)
+    cleanup_expired(settings)
     engine = create_engine_for(settings)
     app.state.engine = engine
     app.state.session_factory = create_session_factory(engine)

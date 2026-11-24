@@ -22,9 +22,9 @@ CHUNK_READ_SIZE = 1024 * 1024
 
 # 扩展名 -> 允许的 MIME 主类型；声明明显不符时按 40003 拒绝
 _EXTENSION_FAMILIES: dict[str, tuple[str, ...]] = {
-    "md": ("text", "application"),
-    "tex": ("text", "application"),
-    "txt": ("text", "application"),
+    "md": ("text",),
+    "tex": ("text",),
+    "txt": ("text",),
     "pdf": ("application",),
     "docx": ("application",),
     "pptx": ("application",),
@@ -104,11 +104,13 @@ class StorageService:
         return extension
 
     # ---- write ------------------------------------------------------
-    def _ensure_space(self, needed: int) -> None:
-        free = shutil.disk_usage(
-            str(self.layout.files_dir if self.layout.files_dir.exists() else self.layout.data_dir)
-        ).free
-        if free < needed:
+    def _free_bytes(self) -> int:
+        base = self.layout.files_dir if self.layout.files_dir.exists() else self.layout.data_dir
+        return shutil.disk_usage(str(base)).free
+
+    def _ensure_free(self, needed: int) -> None:
+        """Raise 60002 before/while writing so a full disk never becomes 60001."""
+        if self._free_bytes() < needed:
             raise AppError(ErrorCode.STORAGE_FULL, "磁盘空间不足，无法保存文件")
 
     def store_chunks(
@@ -129,6 +131,9 @@ class StorageService:
         digest = hashlib.sha256()
         size = 0
         tmp_path: Path | None = None
+        reserve = 1024 * 1024  # 至少留 1 MB 余量
+        self._ensure_free(reserve)
+        next_space_check = 64 * 1024 * 1024
         try:
             with tempfile.NamedTemporaryFile(dir=tmp_dir, suffix=".part", delete=False) as handle:
                 tmp_path = Path(handle.name)
@@ -143,9 +148,15 @@ class StorageService:
                             details={"max_bytes": max_bytes},
                         )
                     digest.update(chunk)
-                    handle.write(chunk)
-            self._ensure_space(size)
-
+                    try:
+                        handle.write(chunk)
+                    except OSError as write_error:
+                        raise AppError(
+                            ErrorCode.STORAGE_FULL, "磁盘空间不足，无法保存文件"
+                        ) from write_error
+                    if size >= next_space_check:
+                        self._ensure_free(reserve)
+                        next_space_check += 64 * 1024 * 1024
             now = utcnow()
             relative_dir = f"{now.year:04d}/{now.month:02d}/{new_id()}"
             target_dir = resolve_safe_path(self.layout.files_dir, relative_dir)

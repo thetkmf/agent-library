@@ -4,16 +4,18 @@ from __future__ import annotations
 
 import urllib.parse
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, File, Form, Header, UploadFile
-from fastapi.responses import Response
+from fastapi import APIRouter, Depends, File, Form, Header, Request, UploadFile
+from fastapi.responses import Response, StreamingResponse
 
 from ...core.envelope import envelope
 from ...core.errors import AppError
 from ...schemas.common import Envelope, ErrorEnvelope
-from ...schemas.files import UploadResult
+from ...schemas.files import ChunkResult, UploadInitOut, UploadInitRequest, UploadResult
 from ...services import files as files_service
+from ...services import uploads as uploads_service
 from ...services.storage import CHUNK_READ_SIZE
 from ..deps import SessionDep, SettingsDep, require_token
 
@@ -70,6 +72,22 @@ def _content_disposition(filename: str) -> str:
     return f"attachment; filename=\"{ascii_fallback}\"; filename*=UTF-8''{quoted}"
 
 
+STREAM_BLOCK_SIZE = 64 * 1024
+
+
+def _iter_file(path: Path, start: int, length: int) -> Iterator[bytes]:
+    """Yield at most `length` bytes from `start` without loading the file at once."""
+    remaining = length
+    with path.open("rb") as handle:
+        handle.seek(start)
+        while remaining > 0:
+            block = handle.read(min(STREAM_BLOCK_SIZE, remaining))
+            if not block:
+                return
+            remaining -= len(block)
+            yield block
+
+
 @router.get(
     "/files/{asset_id}/download",
     response_class=Response,
@@ -87,7 +105,7 @@ def download_file(
     asset_id: str,
     range_header: Annotated[str | None, Header(alias="Range")] = None,
 ) -> Response:
-    """Stream a stored file honouring a single Range request."""
+    """Stream a stored file, honouring a single Range request."""
     asset, _item = files_service.load_asset(session, asset_id)
     path = files_service.resolve_download_path(settings, asset)
     size = path.stat().st_size
@@ -107,16 +125,57 @@ def download_file(
 
     if requested is None:
         headers["Content-Length"] = str(size)
-        return Response(content=path.read_bytes(), media_type=media_type, headers=headers)
+        return StreamingResponse(_iter_file(path, 0, size), media_type=media_type, headers=headers)
 
-    with path.open("rb") as handle:
-        handle.seek(requested.start)
-        payload = handle.read(requested.length)
     headers["Content-Range"] = f"bytes {requested.start}-{requested.end}/{size}"
-    headers["Content-Length"] = str(len(payload))
-    return Response(
-        content=payload,
+    headers["Content-Length"] = str(requested.length)
+    return StreamingResponse(
+        _iter_file(path, requested.start, requested.length),
         status_code=206,
         media_type=media_type,
         headers=headers,
     )
+
+
+@router.post(
+    "/uploads",
+    response_model=Envelope[UploadInitOut],
+    status_code=201,
+    responses=_ERROR_RESPONSES,
+    summary="初始化分片上传会话",
+)
+def init_upload(
+    session: SessionDep, settings: SettingsDep, payload: UploadInitRequest
+) -> dict[str, Any]:
+    """Create a 24h upload session and return the chunk plan."""
+    _ = session
+    return envelope(uploads_service.init_session(settings, payload))
+
+
+@router.put(
+    "/uploads/{upload_id}/chunks/{index}",
+    response_model=Envelope[ChunkResult],
+    responses=_ERROR_RESPONSES,
+    summary="上传单个分片（可乱序 / 重传）",
+)
+async def put_upload_chunk(
+    settings: SettingsDep,
+    upload_id: str,
+    index: int,
+    request: Request,
+) -> dict[str, Any]:
+    """Store one chunk of a chunked upload session."""
+    payload = b"".join([chunk async for chunk in request.stream()])
+    return envelope(uploads_service.put_chunk(settings, upload_id, index, payload))
+
+
+@router.post(
+    "/uploads/{upload_id}/complete",
+    response_model=Envelope[UploadResult],
+    responses=_ERROR_RESPONSES,
+    summary="完成分片上传（校验整体 sha256，幂等）",
+)
+def complete_upload(session: SessionDep, settings: SettingsDep, upload_id: str) -> dict[str, Any]:
+    """Assemble chunks into a file item; repeated calls return the same result."""
+    result, _replay = uploads_service.complete_session(session, settings, upload_id)
+    return envelope(result)

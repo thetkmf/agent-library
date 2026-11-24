@@ -35,7 +35,7 @@ class DownloadRange:
         return self.end - self.start + 1
 
 
-def _file_out(asset: FileAsset) -> FileAssetOut:
+def file_asset_out(asset: FileAsset) -> FileAssetOut:
     return FileAssetOut(
         id=asset.id,
         original_name=asset.original_name,
@@ -63,6 +63,8 @@ def create_file_item(
     chunks: Iterable[bytes],
     title: str | None = None,
     tags: list[str] | None = None,
+    max_bytes: int | None = None,
+    expected_sha256: str | None = None,
 ) -> UploadResult:
     """Store the bytes then create item + file asset in one transaction."""
     storage = StorageService(settings)
@@ -71,8 +73,15 @@ def create_file_item(
         filename=filename,
         mime_type=declared_mime,
         chunks=chunks,
-        max_bytes=settings.max_small_file_bytes,
+        max_bytes=max_bytes if max_bytes is not None else settings.max_small_file_bytes,
     )
+    if expected_sha256 is not None and stored.sha256 != expected_sha256:
+        storage.delete(stored.relative_path)
+        raise AppError(
+            ErrorCode.UPLOAD_INCOMPLETE,
+            "整体 sha256 校验失败，请重新上传",
+            details={"expected": expected_sha256, "actual": stored.sha256},
+        )
 
     resolved_title = (title or "").strip() or stored.original_name
     if len(resolved_title) > TITLE_MAX_LENGTH:
@@ -115,7 +124,7 @@ def create_file_item(
         assert reloaded.file_asset is not None
         return UploadResult(
             item=to_item_out(reloaded),
-            file_asset=_file_out(reloaded.file_asset),
+            file_asset=file_asset_out(reloaded.file_asset),
         )
     except Exception:
         session.rollback()

@@ -10,6 +10,12 @@ from .errors import illegal_path
 
 MAX_FILENAME_LENGTH = 200
 _FORBIDDEN_CHARS = frozenset('<>:"|?*\\' + "".join(chr(code) for code in range(32)))
+# Windows 设备名：带扩展名也仍然被系统占用（CON.md 落盘后为 0 字节）
+_WINDOWS_RESERVED_STEMS = frozenset(
+    {"con", "prn", "aux", "nul"}
+    | {f"com{index}" for index in range(1, 10)}
+    | {f"lpt{index}" for index in range(1, 10)}
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,13 +25,21 @@ class DataLayout:
     data_dir: Path
     db_dir: Path
     files_dir: Path
+    uploads_dir: Path
     logs_dir: Path
     cache_dir: Path
 
     @property
     def directories(self) -> tuple[Path, ...]:
         """Return every directory that must exist on disk."""
-        return (self.data_dir, self.db_dir, self.files_dir, self.logs_dir, self.cache_dir)
+        return (
+            self.data_dir,
+            self.db_dir,
+            self.files_dir,
+            self.uploads_dir,
+            self.logs_dir,
+            self.cache_dir,
+        )
 
 
 def build_layout(settings: Settings) -> DataLayout:
@@ -35,6 +49,7 @@ def build_layout(settings: Settings) -> DataLayout:
         data_dir=base,
         db_dir=base / "db",
         files_dir=base / "files",
+        uploads_dir=base / "uploads",
         logs_dir=base / "logs",
         cache_dir=base / "cache",
     )
@@ -48,8 +63,16 @@ def ensure_layout(settings: Settings) -> DataLayout:
     return layout
 
 
+def _escape_windows_reserved(name: str) -> str:
+    """Prefix Windows device names so the file is actually written to disk."""
+    stem = name.split(".", 1)[0].strip().lower()
+    if stem in _WINDOWS_RESERVED_STEMS:
+        return f"_{name}"
+    return name
+
+
 def sanitize_filename(name: str, *, max_length: int = MAX_FILENAME_LENGTH) -> str:
-    """Strip path separators and control characters from a user supplied filename."""
+    """Strip path separators, control characters and Windows device names."""
     cleaned = "".join("-" if ch in _FORBIDDEN_CHARS or ch in "/\\" else ch for ch in name)
     # 中和上级目录序列，避免文件名里残留 ".."
     while ".." in cleaned:
@@ -57,6 +80,7 @@ def sanitize_filename(name: str, *, max_length: int = MAX_FILENAME_LENGTH) -> st
     cleaned = cleaned.strip(" .")
     if not cleaned:
         raise illegal_path("文件名不合法")
+    cleaned = _escape_windows_reserved(cleaned)
     if len(cleaned) <= max_length:
         return cleaned
     suffix = Path(cleaned).suffix
