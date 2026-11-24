@@ -68,6 +68,13 @@ python ../scripts/export_openapi.py --check  # 校验契约是否最新
 
 检索实现：关键词走 FTS5（trigram，中文可子串；短词回退 LIKE + 出现次数打分，bm25 归一化到 0–1）；语义走 Chroma top-K 并按条目去重；混合用 RRF（k=60）融合后再归一化，排序 `score DESC, id DESC`；嵌入不可用时 `semantic/hybrid` 自动降级关键词并置 `degraded=true`。10k 条量级实测：关键词 43 ms、语义 top30 8 ms、混合 37 ms。
 
+| POST | `/agent/chat` | `{conversation_id?, messages, context_item_ids?, stream}`；仅 `stream=true`，SSE 事件 `message.started`/`message.delta`/`message.completed`/`error`，15s 心跳注释 |
+| GET | `/agent/conversations` | 分页 `{items,page,page_size,total,has_more}`，`updated_at DESC` |
+| GET | `/agent/conversations/{id}` | 会话详情，消息 `created_at ASC` |
+| DELETE | `/agent/conversations/{id}` | 硬删除并级联消息 |
+
+Agent 约定：Key 从 `PKB_DEEPSEEK_API_KEY` 或 Windows 凭据管理器读取，`privacy.allow_external_calls` 未开或没有 Key → 409 + `50001` 且不发请求；只读工具 `search_knowledge`/`get_item`/`get_item_content`/`list_tags`，工具循环上限 4 轮；`citations` 按 `item_id` 去重最多 10 条；客户端断开即终止上游且不写 assistant 消息；测试全部使用假客户端，零外联。
+
 ## 向量（B5a）
 
 - 依赖：`chromadb`（持久化，数据目录 `chroma/`）、`fastembed` + `onnxruntime`（本地推理 `bge-small-zh-v1.5`，512 维）。

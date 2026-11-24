@@ -104,6 +104,16 @@ class Settings(BaseSettings):
     slow_request_ms: int = Field(default=1000, ge=0)
     privacy_allow_external_calls: bool = False
     model_name: str = DEFAULT_MODEL_NAME
+    # DeepSeek 凭据：优先环境变量，其次 Windows 凭据管理器（见 services/llm.resolve_api_key）
+    deepseek_api_key: str | None = Field(default=None, repr=False)
+    llm_connect_timeout_s: float = Field(default=10.0, gt=0)
+    llm_read_timeout_s: float = Field(default=120.0, gt=0)
+    agent_tool_rounds: int = Field(default=4, ge=1, le=8)
+    agent_max_context_items: int = Field(default=20, ge=0, le=50)
+    agent_max_citations: int = Field(default=10, ge=1, le=50)
+    agent_sse_heartbeat_s: float = Field(default=15.0, gt=0)
+    agent_history_messages: int = Field(default=20, ge=1, le=100)
+    agent_tool_content_chars: int = Field(default=4000, ge=200, le=20000)
     # 向量嵌入在本地推理，不走 DeepSeek（见决策记录）
     embedding_model: str = EMBEDDING_MODEL
     embedding_dimension: int = Field(default=EMBEDDING_DIMENSION, ge=1)
