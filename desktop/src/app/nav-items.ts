@@ -3,6 +3,7 @@ import {
   Bell,
   BookOpen,
   Clock,
+  FolderOpen,
   GraduationCap,
   Home,
   ListChecks,
@@ -43,6 +44,14 @@ export const NAV_SECTIONS: NavSection[] = [
         label: '笔记',
         description: 'Markdown / TeX 笔记的创建、编辑与版本管理',
         icon: BookOpen,
+        stage: 'ready',
+      },
+      {
+        id: 'files',
+        path: '/files',
+        label: '文件',
+        description: '上传、预览与下载本地文件',
+        icon: FolderOpen,
         stage: 'ready',
       },
       {
