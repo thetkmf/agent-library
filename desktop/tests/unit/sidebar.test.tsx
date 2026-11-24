@@ -34,7 +34,7 @@ describe('Sidebar', () => {
 
   it('规划中功能显示「规划中」标记，就绪功能不显示', () => {
     renderSidebar();
-    expect(screen.getByRole('link', { name: /检索/ })).toHaveTextContent('规划中');
+    expect(screen.getByRole('link', { name: /知识图谱/ })).toHaveTextContent('规划中');
     expect(screen.getByRole('link', { name: /笔记/ })).not.toHaveTextContent('规划中');
   });
 

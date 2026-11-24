@@ -68,8 +68,7 @@ export const NAV_SECTIONS: NavSection[] = [
         label: '检索',
         description: '关键词、语义与混合检索',
         icon: Search,
-        stage: 'planned',
-        milestone: 'M2',
+        stage: 'ready',
       },
       {
         id: 'graph',

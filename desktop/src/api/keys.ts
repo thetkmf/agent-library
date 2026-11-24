@@ -27,4 +27,10 @@ export const queryKeys = {
     all: ['tags'] as const,
     list: () => [...queryKeys.tags.all, 'list'] as const,
   },
+  search: {
+    all: ['search'] as const,
+    lists: () => [...queryKeys.search.all, 'list'] as const,
+    list: (params: object = {}) => [...queryKeys.search.lists(), params] as const,
+    indexStatus: () => [...queryKeys.search.all, 'index-status'] as const,
+  },
 } as const;
