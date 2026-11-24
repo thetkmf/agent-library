@@ -13,6 +13,7 @@
 | AI 模型 | DeepSeek（唯一供应商，OpenAI 兼容接口） |
 | 数据库 | SQLite + SQLAlchemy + Alembic |
 | 向量库 | ChromaDB（嵌入式） |
+| 向量嵌入 | BAAI/bge-small-zh-v1.5（本地 ONNX，512 维） |
 | 契约 | OpenAPI 3.1（FastAPI 导出） |
 
 ## 目录
