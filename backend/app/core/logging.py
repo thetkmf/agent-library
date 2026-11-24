@@ -6,6 +6,7 @@ import json
 import logging
 import sys
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any, Final
 
 from .context import get_request_id
@@ -50,13 +51,23 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(payload, ensure_ascii=False, default=str)
 
 
-def configure_logging(level: str = "INFO") -> None:
+def configure_logging(level: str = "INFO", log_file: Path | None = None) -> None:
     """Install the JSON formatter on the root logger and let uvicorn reuse it."""
-    handler = logging.StreamHandler(stream=sys.stdout)
-    handler.setFormatter(JsonFormatter())
+    formatter = JsonFormatter()
+    handlers: list[logging.Handler] = [logging.StreamHandler(stream=sys.stdout)]
+    if log_file is not None:
+        try:
+            log_file.parent.mkdir(parents=True, exist_ok=True)
+            handlers.append(logging.FileHandler(log_file, encoding="utf-8", delay=True))
+        except OSError:
+            # 拿不到日志文件不影响服务启动，只退化为 stdout
+            pass
+    for handler in handlers:
+        handler.setFormatter(formatter)
     root = logging.getLogger()
     root.handlers.clear()
-    root.addHandler(handler)
+    for handler in handlers:
+        root.addHandler(handler)
     root.setLevel(level)
     for name in ("uvicorn", "uvicorn.error", "uvicorn.access"):
         uvicorn_logger = logging.getLogger(name)

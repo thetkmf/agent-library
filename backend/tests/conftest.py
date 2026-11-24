@@ -20,7 +20,7 @@ def token() -> str:
 
 @pytest.fixture()
 def settings(tmp_path: Path, token: str) -> Settings:
-    return Settings(local_token=token, data_dir=tmp_path / "data", _env_file=None)
+    return Settings(token=token, data_dir=tmp_path / "data", _env_file=None)
 
 
 @pytest.fixture()

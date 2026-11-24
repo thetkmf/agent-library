@@ -7,7 +7,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 APP_NAME = "PersonalKnowledgeBase"
@@ -50,6 +50,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
         validate_default=True,
+        populate_by_name=True,
     )
 
     app_name: str = APP_NAME
@@ -59,7 +60,12 @@ class Settings(BaseSettings):
     debug: bool = False
     host: str = "127.0.0.1"
     port: int = Field(default=8765, ge=0, le=65535)
-    local_token: str | None = None
+    # 启动契约由 Electron 主进程注入（PKB_TOKEN）；PKB_LOCAL_TOKEN 保留为本地开发别名
+    token: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("PKB_TOKEN", "PKB_LOCAL_TOKEN"),
+    )
+    log_file: Path | None = None
     data_dir: Path = Field(default_factory=default_data_dir)
     log_level: str = "INFO"
     slow_request_ms: int = Field(default=1000, ge=0)
@@ -90,15 +96,15 @@ class Settings(BaseSettings):
             raise ValueError(f"不支持的模型：{value!r}，仅允许 {', '.join(MODEL_NAMES)}")
         return name
 
-    @field_validator("local_token")
+    @field_validator("token")
     @classmethod
-    def _validate_local_token(cls, value: str | None) -> str | None:
+    def _validate_token(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        token = value.strip()
-        if len(token) < 16:
-            raise ValueError("local_token 至少 16 个字符")
-        return token
+        cleaned = value.strip()
+        if len(cleaned) < 16:
+            raise ValueError("token 至少 16 个字符")
+        return cleaned
 
 
 @lru_cache(maxsize=1)

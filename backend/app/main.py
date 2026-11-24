@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import uvicorn
 from fastapi import FastAPI
 
 from .api.v1 import api_router
@@ -42,7 +43,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Build the FastAPI application."""
     resolved = settings or get_settings()
-    configure_logging(resolved.log_level)
+    configure_logging(resolved.log_level, resolved.log_file)
     app = FastAPI(
         title="Personal Knowledge Base API",
         version=resolved.app_version,
@@ -60,4 +61,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     return app
 
 
+def run() -> None:
+    """Start the server with settings-driven host/port; used by `python -m app.main`."""
+    settings = get_settings()
+    configure_logging(settings.log_level, settings.log_file)
+    uvicorn.run(
+        create_app(settings),
+        host=settings.host,
+        port=settings.port,
+        log_config=None,
+        access_log=False,
+    )
+
+
 app = create_app()
+
+
+if __name__ == "__main__":
+    run()

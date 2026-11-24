@@ -8,12 +8,12 @@
 cd backend
 uv venv
 uv pip install -e ".[dev]"
-cp .env.example .env   # 填入 PKB_LOCAL_TOKEN
-uv run uvicorn app.main:app --host 127.0.0.1 --port 8765
+cp .env.example .env   # 填入 PKB_TOKEN
+uv run python -m app.main
 ```
 
 - 健康检查：`GET /health`（同时提供 `GET /api/v1/health`，无需 token）
-- 业务接口：`POST/GET /api/v1/...`，需 `Authorization: Bearer <PKB_LOCAL_TOKEN>`
+- 业务接口：`POST/GET /api/v1/...`，需 `Authorization: Bearer <PKB_TOKEN>`
 - 交互文档：`/api/v1/docs`
 
 ## 质量门禁
@@ -26,6 +26,19 @@ uv run pytest
 python ../scripts/export_openapi.py          # 导出契约
 python ../scripts/export_openapi.py --check  # 校验契约是否最新
 ```
+
+## 启动契约（Electron 主进程注入）
+
+| 环境变量 | 说明 |
+| --- | --- |
+| `PKB_HOST` | 固定 `127.0.0.1`，非回环地址拒绝启动 |
+| `PKB_PORT` | 主进程分配的动态端口 |
+| `PKB_TOKEN` | 本地 Bearer token（`PKB_LOCAL_TOKEN` 为开发别名） |
+| `PKB_DATA_DIR` | 数据目录 |
+| `PKB_LOG_FILE` | 结构化日志文件路径（同时写 stdout） |
+| `PKB_LOG_LEVEL` | 日志级别 |
+
+入口为 `python -m app.main`（或 `python -m app`）。
 
 ## 目录约定
 

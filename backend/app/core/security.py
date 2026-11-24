@@ -26,7 +26,7 @@ def verify_bearer(authorization: str | None, settings: Settings) -> None:
     token = credentials.strip()
     if scheme.lower() != "bearer" or not token:
         raise AppError(ErrorCode.UNAUTHENTICATED, "访问令牌格式错误")
-    expected = settings.local_token
+    expected = settings.token
     if expected is None:
         raise AppError(ErrorCode.SERVICE_NOT_READY, "本地令牌未配置，服务未就绪")
     if not hmac.compare_digest(_digest(token), _digest(expected)):
