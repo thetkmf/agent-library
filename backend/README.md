@@ -105,6 +105,35 @@ Agent 约定：Key 从 `PKB_DEEPSEEK_API_KEY` 或 Windows 凭据管理器读取�
 
 密钥：DeepSeek Key 只存 Windows 凭据管理器（service `pkb-deepseek`），不写库、不进日志；凭据后端不可用时退化为进程内存储（仅本次运行）。
 
+## 性能基线（本机，200 条目 / 64 维测试嵌入）
+
+`python ../scripts/bench.py`（一次性数据目录，不联网）：
+
+| 指标 | 数值 |
+| --- | --- |
+| 启动到 `/health` 可用 | 1129 ms（含首次 import chromadb） |
+| 创建条目 | p50 5.4 ms / p95 8.4 ms |
+| 列表 50 条 | 13.5 ms |
+| 全量重建 200 条 | 313 ms |
+| 混合检索 | p50 21.9 ms / p95 26.1 ms |
+
+检索 1 万条量级的数字见上文 `/search` 说明（关键词 43 ms、语义 top30 8 ms、混合 37 ms）。
+
+## 常用命令
+
+```bash
+# 启动（cwd 在 backend/，PKB_TOKEN 由 Electron 注入）
+PKB_TOKEN=<32+ 字符> python -m app.main
+
+# 门禁
+python -m ruff check . && python -m ruff format --check . && python -m mypy app && python -m pytest
+python ../scripts/export_openapi.py --check
+
+# 基准 / 进度
+python ../scripts/bench.py
+python ../scripts/check_progress.py --file ../docs/开发过程.md
+```
+
 ## 向量（B5a）
 
 - 依赖：`chromadb`（持久化，数据目录 `chroma/`）、`fastembed` + `onnxruntime`（本地推理 `bge-small-zh-v1.5`，512 维）。

@@ -6,9 +6,11 @@ import asyncio
 import threading
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
 
 from .api.v1 import api_router
 from .api.v1.system import root_health_router
@@ -106,6 +108,37 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info("app.stopped", extra={"fields": {"version": settings.app_version}})
 
 
+def _install_openapi_security(app: FastAPI) -> None:
+    """Document the Bearer header as a security scheme (runtime check lives in require_token)."""
+
+    def custom_openapi() -> dict[str, Any]:
+        if app.openapi_schema:
+            return app.openapi_schema
+        schema = get_openapi(
+            title=app.title,
+            version=app.version,
+            description=app.description,
+            routes=app.routes,
+        )
+        components = schema.setdefault("components", {})
+        components.setdefault("securitySchemes", {})["BearerAuth"] = {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": "Bearer <PKB_TOKEN>",
+        }
+        for path, operations in schema.get("paths", {}).items():
+            if path.endswith("/health"):
+                continue
+            for operation in operations.values():
+                if isinstance(operation, dict) and operation.get("security") is None:
+                    operation["security"] = [{"BearerAuth": []}]
+        app.openapi_schema = schema
+        return schema
+
+    app.openapi = custom_openapi  # type: ignore[method-assign]
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Build the FastAPI application."""
     resolved = settings or get_settings()
@@ -124,6 +157,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     register_exception_handlers(app)
     app.include_router(root_health_router)
     app.include_router(api_router, prefix=resolved.api_prefix)
+    _install_openapi_security(app)
     return app
 
 
