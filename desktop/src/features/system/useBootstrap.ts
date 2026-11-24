@@ -64,9 +64,17 @@ export function useBootstrap(): UseBootstrapResult {
       });
 
     const unsubscribe = bridge.onBackendStatus((status) => {
-      if (mounted.current) {
-        setBackend(status);
+      if (!mounted.current) {
+        return;
       }
+      setBackend(status);
+      // 后端后启动/重启会改变 API 地址，需要同步回启动上下文，
+      // 否则 API 客户端会一直停留在「未就绪」。
+      setBootstrap((previous) =>
+        previous && previous.api_base_url !== status.api_base_url
+          ? { ...previous, api_base_url: status.api_base_url, backend: status }
+          : previous,
+      );
     });
 
     return () => {
