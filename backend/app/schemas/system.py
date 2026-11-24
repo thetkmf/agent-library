@@ -26,30 +26,28 @@ class SystemInfoOut(BaseModel):
     environment: str
 
 
-class ModelCapability(BaseModel):
-    configured: bool = False
-    provider: str | None = None
-    model: str | None = None
+class AiCapability(BaseModel):
+    """DeepSeek-only AI capability snapshot; never exposes the API key."""
+
+    provider: Literal["deepseek"] = "deepseek"
+    model: str
+    has_key: bool = False
+    external_calls_enabled: bool = False
+    ready: bool = False
 
 
 class VectorCapability(BaseModel):
     ready: bool = False
-    indexed_items: int = 0
+    indexed_count: int = 0
 
 
 class StorageInfo(BaseModel):
     free_bytes: int
-    total_bytes: int
-
-
-class PrivacyInfo(BaseModel):
-    allow_external_calls: bool = False
 
 
 class CapabilitiesOut(BaseModel):
     """What the local installation can currently do."""
 
-    model: ModelCapability
+    ai: AiCapability
     vector: VectorCapability
     storage: StorageInfo
-    privacy: PrivacyInfo

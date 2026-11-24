@@ -14,6 +14,10 @@ APP_NAME = "PersonalKnowledgeBase"
 APP_VERSION = "0.1.0"
 API_PREFIX = "/api/v1"
 API_VERSION = "v1"
+MODEL_PROVIDER = "deepseek"
+MODEL_BASE_URL = "https://api.deepseek.com"
+MODEL_NAMES = ("deepseek-chat", "deepseek-reasoner")
+DEFAULT_MODEL_NAME = MODEL_NAMES[0]
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
 _LOOPBACK_NAMES = frozenset({"localhost", "::1", "0:0:0:0:0:0:0:1"})
 
@@ -60,6 +64,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     slow_request_ms: int = Field(default=1000, ge=0)
     privacy_allow_external_calls: bool = False
+    model_name: str = DEFAULT_MODEL_NAME
 
     @field_validator("host")
     @classmethod
@@ -76,6 +81,14 @@ class Settings(BaseSettings):
         if level not in LOG_LEVELS:
             raise ValueError(f"不支持的日志级别：{value!r}")
         return level
+
+    @field_validator("model_name")
+    @classmethod
+    def _validate_model_name(cls, value: str) -> str:
+        name = value.strip()
+        if name not in MODEL_NAMES:
+            raise ValueError(f"不支持的模型：{value!r}，仅允许 {', '.join(MODEL_NAMES)}")
+        return name
 
     @field_validator("local_token")
     @classmethod

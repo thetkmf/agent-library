@@ -36,3 +36,13 @@ def test_is_loopback_host_rejects_remote_names() -> None:
     assert is_loopback_host("example.com") is False
     assert is_loopback_host("10.0.0.1") is False
     assert is_loopback_host("[::1]") is True
+
+
+def test_rejects_unknown_model() -> None:
+    with pytest.raises(ValidationError):
+        Settings(model_name="gpt-4o", _env_file=None)
+
+
+@pytest.mark.parametrize("name", ["deepseek-chat", "deepseek-reasoner"])
+def test_accepts_whitelisted_models(name: str) -> None:
+    assert Settings(model_name=name, _env_file=None).model_name == name

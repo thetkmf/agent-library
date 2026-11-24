@@ -1,14 +1,46 @@
 {
   "components": {
     "schemas": {
+      "AiCapability": {
+        "description": "DeepSeek-only AI capability snapshot; never exposes the API key.",
+        "properties": {
+          "external_calls_enabled": {
+            "default": false,
+            "title": "External Calls Enabled",
+            "type": "boolean"
+          },
+          "has_key": {
+            "default": false,
+            "title": "Has Key",
+            "type": "boolean"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "const": "deepseek",
+            "default": "deepseek",
+            "title": "Provider",
+            "type": "string"
+          },
+          "ready": {
+            "default": false,
+            "title": "Ready",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "model"
+        ],
+        "title": "AiCapability",
+        "type": "object"
+      },
       "CapabilitiesOut": {
         "description": "What the local installation can currently do.",
         "properties": {
-          "model": {
-            "$ref": "#/components/schemas/ModelCapability"
-          },
-          "privacy": {
-            "$ref": "#/components/schemas/PrivacyInfo"
+          "ai": {
+            "$ref": "#/components/schemas/AiCapability"
           },
           "storage": {
             "$ref": "#/components/schemas/StorageInfo"
@@ -18,10 +50,9 @@
           }
         },
         "required": [
-          "model",
+          "ai",
           "vector",
-          "storage",
-          "privacy"
+          "storage"
         ],
         "title": "CapabilitiesOut",
         "type": "object"
@@ -165,64 +196,15 @@
         "title": "HealthOut",
         "type": "object"
       },
-      "ModelCapability": {
-        "properties": {
-          "configured": {
-            "default": false,
-            "title": "Configured",
-            "type": "boolean"
-          },
-          "model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Model"
-          },
-          "provider": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Provider"
-          }
-        },
-        "title": "ModelCapability",
-        "type": "object"
-      },
-      "PrivacyInfo": {
-        "properties": {
-          "allow_external_calls": {
-            "default": false,
-            "title": "Allow External Calls",
-            "type": "boolean"
-          }
-        },
-        "title": "PrivacyInfo",
-        "type": "object"
-      },
       "StorageInfo": {
         "properties": {
           "free_bytes": {
             "title": "Free Bytes",
             "type": "integer"
-          },
-          "total_bytes": {
-            "title": "Total Bytes",
-            "type": "integer"
           }
         },
         "required": [
-          "free_bytes",
-          "total_bytes"
+          "free_bytes"
         ],
         "title": "StorageInfo",
         "type": "object"
@@ -313,9 +295,9 @@
       },
       "VectorCapability": {
         "properties": {
-          "indexed_items": {
+          "indexed_count": {
             "default": 0,
-            "title": "Indexed Items",
+            "title": "Indexed Count",
             "type": "integer"
           },
           "ready": {

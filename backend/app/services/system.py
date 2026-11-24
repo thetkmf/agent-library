@@ -7,7 +7,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from ..core.config import API_VERSION, Settings
+from ..core.config import API_VERSION, MODEL_PROVIDER, Settings
 from ..core.paths import build_layout
 
 
@@ -32,13 +32,27 @@ def describe_service(settings: Settings) -> dict[str, Any]:
     }
 
 
+def has_model_key() -> bool:
+    """Report whether a DeepSeek key is stored in the Windows credential manager.
+
+    Reading the credential manager is part of B12; until then no key is configured.
+    """
+    return False
+
+
 def capabilities(settings: Settings) -> dict[str, Any]:
     """Build the /system/capabilities payload."""
     layout = build_layout(settings)
     usage = shutil.disk_usage(str(_existing_ancestor(layout.data_dir)))
+    has_key = has_model_key()
     return {
-        "model": {"configured": False, "provider": None, "model": None},
-        "vector": {"ready": False, "indexed_items": 0},
-        "storage": {"free_bytes": usage.free, "total_bytes": usage.total},
-        "privacy": {"allow_external_calls": settings.privacy_allow_external_calls},
+        "ai": {
+            "provider": MODEL_PROVIDER,
+            "model": settings.model_name,
+            "has_key": has_key,
+            "external_calls_enabled": settings.privacy_allow_external_calls,
+            "ready": has_key and settings.privacy_allow_external_calls,
+        },
+        "vector": {"ready": False, "indexed_count": 0},
+        "storage": {"free_bytes": usage.free},
     }

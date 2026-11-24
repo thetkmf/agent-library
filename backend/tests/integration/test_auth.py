@@ -46,10 +46,14 @@ def test_valid_token_returns_success_envelope(
 def test_capabilities_payload(client: TestClient, auth_headers: dict[str, str]) -> None:
     body = client.get("/api/v1/system/capabilities", headers=auth_headers).json()
     data = body["data"]
-    assert data["privacy"]["allow_external_calls"] is False
-    assert data["model"]["configured"] is False
-    assert data["vector"]["ready"] is False
-    assert data["storage"]["total_bytes"] > 0
+    assert data["ai"]["provider"] == "deepseek"
+    assert data["ai"]["model"] == "deepseek-chat"
+    assert data["ai"]["has_key"] is False
+    assert data["ai"]["external_calls_enabled"] is False
+    assert data["ai"]["ready"] is False
+    assert data["vector"] == {"ready": False, "indexed_count": 0}
+    assert data["storage"]["free_bytes"] > 0
+    assert set(data) == {"ai", "vector", "storage"}
 
 
 def test_missing_token_not_configured(tmp_path) -> None:
