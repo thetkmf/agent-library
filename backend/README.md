@@ -59,6 +59,13 @@ python ../scripts/export_openapi.py --check  # 校验契约是否最新
 
 分片默认 8 MB（5–20 MB 可配），会话 24 小时过期（`30001`），缺片/校验失败 `40005`，启动时清理过期会话。
 
+## 向量（B5a）
+
+- 依赖：`chromadb`（持久化，数据目录 `chroma/`）、`fastembed` + `onnxruntime`（本地推理 `bge-small-zh-v1.5`，512 维）。
+- 惰性加载：模型未下载时 `embedding.status=missing`，服务照常启动；首次重建索引时才加载/下载模型。
+- 可配置：`PKB_EMBEDDING_MODEL_DIR`（校验 `model.onnx` sha256）、`PKB_EMBEDDING_BATCH_SIZE`、`PKB_EMBEDDING_MAX_WORKERS`、`PKB_CHUNK_CHARS`/`PKB_CHUNK_OVERLAP_CHARS`。
+- 测试使用确定性哈希嵌入器，不联网、不加载真实模型。
+
 ## 数据层（B1）
 
 - 数据库：SQLite，文件位于 `<PKB_DATA_DIR>/db/pkb.sqlite3`；连接时开启 `foreign_keys`、`WAL`、`busy_timeout`。

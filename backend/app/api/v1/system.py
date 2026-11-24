@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from ...core.envelope import envelope
 from ...schemas.common import Envelope, ErrorEnvelope
@@ -60,6 +60,17 @@ def system_info(settings: SettingsDep) -> dict[str, Any]:
     responses=_ERROR_RESPONSES,
     summary="当前能力：模型、向量库、存储、隐私开关",
 )
-def system_capabilities(settings: SettingsDep) -> dict[str, Any]:
+def system_capabilities(settings: SettingsDep, request: Request) -> dict[str, Any]:
     """Return what the local installation can currently do."""
-    return envelope(system_service.capabilities(settings))
+    store = getattr(request.app.state, "vector_store", None)
+    indexed_count = 0
+    if store is not None:
+        try:
+            indexed_count = store.count()
+        except Exception:  # pragma: no cover - 向量库异常不应拖垮能力接口
+            indexed_count = 0
+    return envelope(
+        system_service.capabilities(
+            settings, vector_ready=store is not None, indexed_count=indexed_count
+        )
+    )

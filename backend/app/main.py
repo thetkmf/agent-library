@@ -18,6 +18,7 @@ from .core.paths import ensure_layout
 from .db.migrate import run_migrations
 from .db.session import create_engine_for, create_session_factory
 from .services.uploads import cleanup_expired
+from .services.vector_store import build_vector_store
 
 logger = get_logger("pkb.app")
 
@@ -33,6 +34,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     engine = create_engine_for(settings)
     app.state.engine = engine
     app.state.session_factory = create_session_factory(engine)
+    app.state.vector_store = build_vector_store(settings)
     logger.info(
         "app.started",
         extra={
