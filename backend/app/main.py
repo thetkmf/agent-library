@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import threading
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -21,7 +22,9 @@ from .db.session import create_engine_for, create_session_factory
 from .services.agent import AgentService
 from .services.ai_tasks import AiTaskService
 from .services.embedding import EmbeddingService
+from .services.events import EventBus
 from .services.indexing import IndexService
+from .services.reminders import ReminderScheduler, ReminderService
 from .services.search import SearchService
 from .services.uploads import cleanup_expired
 from .services.vector_store import MemoryVectorStore, build_vector_store
@@ -64,6 +67,19 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.search_service = search_service
     app.state.agent_service = AgentService(settings, session_factory, search_service)
     app.state.ai_task_service = AiTaskService(settings, session_factory)
+    event_bus = EventBus()
+    event_bus.bind_loop(asyncio.get_running_loop())
+    reminder_service = ReminderService(settings, session_factory, event_bus)
+    app.state.event_bus = event_bus
+    app.state.reminder_service = reminder_service
+    reminder_scheduler: ReminderScheduler | None = None
+    if settings.reminder_scheduler_enabled:
+        reminder_scheduler = ReminderScheduler(
+            reminder_service, interval_s=settings.reminder_scan_interval_s
+        )
+        reminder_scheduler.start()
+        reminder_service.recover()
+    app.state.reminder_scheduler = reminder_scheduler
     interrupted = index_service.recover_interrupted()
     if interrupted:
         logger.info("index.recovered", extra={"fields": {"tasks": interrupted}})

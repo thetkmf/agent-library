@@ -84,6 +84,13 @@ Agent 约定：Key 从 `PKB_DEEPSEEK_API_KEY` 或 Windows 凭据管理器读取�
 
 自动化约定：同一时刻只跑一个任务，其余 `queued`；重启把 `running` 置 `failed`；取消在条目边界生效；`graph_build` 只从标签与已采纳的 link 建议确定性建图；测试全部注入假模型（零外联）。
 
+| GET/POST | `/reminders` | 列表（`status/from/to` 过滤、按提醒时间升序）与创建；`remind_at` 必须为将来（允许 1 分钟偏差），`related_item_ids` 必须存在 |
+| PATCH/DELETE | `/reminders/{id}` | 修改（改时间会重排调度）/ 取消（幂等） |
+| POST | `/reminders/{id}/done` \| `/snooze` | done 后按 `repeat_rule` 生成下一次（daily/weekly/monthly，月末夹取）；snooze 1–10080 分钟，到点回到 `pending` |
+| GET | `/events/stream` | SSE：`event: reminder.due` + ReminderOut 单行 JSON；15s 心跳；不重放历史 |
+
+调度：进程内 APScheduler（每条提醒一个 `date` 作业 + 60s 兜底扫描），启动重建并在关停时释放；启动/唤醒时补发已到点但未通知过的提醒（`last_notified_at` 保证每次 occurrence 只发一次）。
+
 ## 向量（B5a）
 
 - 依赖：`chromadb`（持久化，数据目录 `chroma/`）、`fastembed` + `onnxruntime`（本地推理 `bge-small-zh-v1.5`，512 维）。

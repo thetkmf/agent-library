@@ -215,6 +215,10 @@ class Reminder(TimestampMixin, Base):
     related_item_ids: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
     status: Mapped[str] = mapped_column(String(16), default="pending", nullable=False)
     snooze_until: Mapped[datetime | None] = mapped_column(UtcDateTime, default=None, nullable=True)
+    # 每次 occurrence 只推一次 reminder.due
+    last_notified_at: Mapped[datetime | None] = mapped_column(
+        UtcDateTime, default=None, nullable=True
+    )
 
 
 class LearningPlan(TimestampMixin, Base):

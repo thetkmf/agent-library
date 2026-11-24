@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -11,6 +12,20 @@ from app.main import create_app
 from fastapi.testclient import TestClient
 
 TOKEN = "test-token-0123456789abcdef"
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _disable_background_scheduler() -> Iterator[None]:
+    """测试不启后台调度线程；调度逻辑用 ReminderService.fire_due 直接驱动。"""
+    previous = os.environ.get("PKB_REMINDER_SCHEDULER_ENABLED")
+    os.environ["PKB_REMINDER_SCHEDULER_ENABLED"] = "false"
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop("PKB_REMINDER_SCHEDULER_ENABLED", None)
+        else:
+            os.environ["PKB_REMINDER_SCHEDULER_ENABLED"] = previous
 
 
 @pytest.fixture()

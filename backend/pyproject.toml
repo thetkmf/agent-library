@@ -24,6 +24,8 @@ dependencies = [
   "tzdata>=2024.1",
   # DeepSeek 出站调用（OpenAI 兼容协议 + SSE 解析）；测试用 MockTransport 注入
   "httpx>=0.27,<1.0",
+  # 提醒调度
+  "apscheduler>=3.10,<4.0",
 ]
 
 [project.optional-dependencies]
@@ -56,6 +58,11 @@ python_version = "3.11"
 strict = true
 files = ["app"]
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+# APScheduler 未带 py.typed；只用它的 BackgroundScheduler API
+module = ["apscheduler.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
