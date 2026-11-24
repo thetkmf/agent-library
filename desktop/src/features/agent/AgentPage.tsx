@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/cn';
 import { formatRelativeTime } from '@/lib/format';
 import { renderMarkdown } from '@/features/notes/markdown';
+import { ContextPicker } from './ContextPicker';
 import { useChatStream, type ChatMessageView } from './useChatStream';
 
 function CitationList({ citations }: { citations: Citation[] }): JSX.Element | null {
@@ -171,6 +172,9 @@ export function AgentPage(): JSX.Element {
     void queryClient.invalidateQueries({ queryKey: queryKeys.agent.all });
   }, [queryClient]);
 
+  const [contextIds, setContextIds] = useState<string[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
   const chat = useChatStream({
     conversationId,
     initialMessages,
@@ -297,7 +301,30 @@ export function AgentPage(): JSX.Element {
         ) : null}
 
         <div className="px-3 pb-3">
-          <ChatComposer streaming={chat.streaming} onSend={chat.send} onStop={chat.stop} />
+          <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+            <Button size="sm" variant="ghost" onClick={() => setPickerOpen(true)} data-testid="open-context-picker">
+              引用条目（{contextIds.length}）
+            </Button>
+            {contextIds.length > 0 ? (
+              <Button size="sm" variant="ghost" onClick={() => setContextIds([])}>
+                清除引用
+              </Button>
+            ) : null}
+            {contextIds.length > 0 ? (
+              <span className="text-[11px] text-muted">已选择 {contextIds.length} 条作为上下文</span>
+            ) : null}
+          </div>
+          <ChatComposer
+            streaming={chat.streaming}
+            onSend={(text) => chat.send(text, contextIds)}
+            onStop={chat.stop}
+          />
+          <ContextPicker
+            open={pickerOpen}
+            selected={contextIds}
+            onClose={() => setPickerOpen(false)}
+            onConfirm={setContextIds}
+          />
           <p className="mt-1 text-[11px] text-muted">
             流式输出 · 可随时停止 · 断线自动重连（最多 5 次）
           </p>

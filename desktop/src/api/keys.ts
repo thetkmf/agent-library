@@ -31,6 +31,28 @@ export const queryKeys = {
     all: ['agent'] as const,
     conversations: () => [...queryKeys.agent.all, 'conversations'] as const,
     conversation: (id: string) => [...queryKeys.agent.all, 'conversation', id] as const,
+    tasksList: () => [...queryKeys.agent.all, 'tasks'] as const,
+    tasks: (query: object = {}) => [...queryKeys.agent.tasksList(), query] as const,
+    suggestionsList: () => [...queryKeys.agent.all, 'suggestions'] as const,
+    suggestions: (query: object = {}) => [...queryKeys.agent.suggestionsList(), query] as const,
+  },
+  reminders: {
+    all: ['reminders'] as const,
+    list: (query: object = {}) => [...queryKeys.reminders.all, 'list', query] as const,
+  },
+  learning: {
+    all: ['learning'] as const,
+    plans: (query: object = {}) => [...queryKeys.learning.all, 'plans', query] as const,
+    progress: () => [...queryKeys.learning.all, 'progress'] as const,
+  },
+  graph: {
+    all: ['graph'] as const,
+    data: (query: object = {}) => [...queryKeys.graph.all, 'data', query] as const,
+    stats: () => [...queryKeys.graph.all, 'stats'] as const,
+  },
+  settings: {
+    all: ['settings'] as const,
+    profile: () => ['settings', 'profile'] as const,
   },
   search: {
     all: ['search'] as const,

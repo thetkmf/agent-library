@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { configureApi, resetApiConfig } from '@/api/config';
 import { createMockFetch, MOCK_BASE_URL } from '@/mocks/router';
-import { agentMockRoutes, resetAgentMocks } from '@/mocks/agent';
+import { agentMockRoutes, resetAgentMocks } from '../fixtures/agent-mock';
 import { useChatStream } from '@/features/agent/useChatStream';
 
 beforeEach(() => {

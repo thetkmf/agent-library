@@ -48,6 +48,17 @@ describe('AppRoutes', () => {
       );
       if (item.id === 'notes') {
         expect(screen.getByRole('heading', { name: '全部条目' })).toBeInTheDocument();
+      } else if (item.id === 'reminders') {
+        expect(screen.getByRole('region', { name: '新建提醒' })).toBeInTheDocument();
+      } else if (item.id === 'learning') {
+        expect(screen.getByRole('region', { name: '学习进度汇总' })).toBeInTheDocument();
+      } else if (item.id === 'graph') {
+        expect(screen.getByRole('region', { name: '图谱统计' })).toBeInTheDocument();
+      } else if (item.id === 'settings') {
+        // 设置页依赖后端数据：无后端时进入加载/错误态，只要不是兜底 404 即视为有路由
+        expect(screen.queryByText('页面不存在')).toBeNull();
+      } else if (item.id === 'tasks') {
+        expect(screen.getByRole('region', { name: '创建任务' })).toBeInTheDocument();
       } else if (item.id === 'agent') {
         expect(screen.getByRole('region', { name: '对话' })).toBeInTheDocument();
       } else if (item.id === 'search') {

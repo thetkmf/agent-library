@@ -1,13 +1,14 @@
 /**
- * AI 对话 Mock（F7 前置，契约 9.6）。B7 尚未产出 `/agent/*`，按 13.6 提供同形替身：
+ * AI 对话 Mock —— 仅测试用夹具。B7/B8 已合入真实 `/agent/*`；
+ * 产品代码中的 mock 已删除，这份数据保留为 F7 的 UI 回归夹具：
  * - `GET /agent/conversations`、`GET/DELETE /agent/conversations/{id}`
  * - `POST /agent/chat`：SSE 流（message.started → message.delta × N → message.completed）
  *
  * B7 合入后删除本文件与 `src/mocks/index.ts` 中的路由，重跑 `gen:api` 切真实契约。
  */
 import { API_ERROR_CODES } from '@/api/errors';
-import { fail, ok } from './envelope';
-import type { MockRequest, MockResponse, MockRoute } from './router';
+import { fail, ok } from '@/mocks/envelope';
+import type { MockRequest, MockResponse, MockRoute } from '@/mocks/router';
 
 interface MockMessage {
   id: string;
@@ -102,7 +103,7 @@ function listConversations(): MockResponse {
   const items = [...conversations.values()]
     .sort((left, right) => right.updated_at.localeCompare(left.updated_at))
     .map(({ id, title, created_at, updated_at }) => ({ id, title, created_at, updated_at }));
-  return ok(items);
+  return ok({ items, page: 1, page_size: 50, total: items.length, has_more: false });
 }
 
 function findConversation(id: string): MockConversation | undefined {

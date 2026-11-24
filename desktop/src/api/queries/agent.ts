@@ -5,8 +5,8 @@ import type { components } from '@/api/generated';
 import { openSseStream } from '@/api/sse';
 
 /**
- * AI 对话（契约 9.6）。B7 尚未产出 `/agent/*`，当前由 `src/mocks/agent.ts` 提供；
- * B7 合入后删除 mock、重跑 `gen:api`，类型换成 generated。
+ * AI 对话 / 任务 / 建议（契约 9.6）。B7、B8 已合入，类型取自 `generated.ts`；
+ * 生成类型里带默认值的字段是可选的，这里归一化成稳定形状给 UI 使用。
  */
 export type Role = 'user' | 'assistant' | 'tool' | 'system';
 
@@ -16,6 +16,11 @@ export interface Citation {
   snippet: string;
   score: number;
 }
+
+type RawMessage = components['schemas']['MessageOut'];
+type RawConversationSummary = components['schemas']['ConversationSummary'];
+type RawConversationPage = components['schemas']['ConversationPage'];
+type RawConversationDetail = components['schemas']['ConversationDetail'];
 
 export interface ChatMessage {
   id: string;
@@ -37,18 +42,61 @@ export interface ConversationDetail extends Conversation {
   messages: ChatMessage[];
 }
 
-export interface ChatRequestBody {
-  conversation_id: string | null;
-  messages: Array<{ role: Role; content: string }>;
-  context_item_ids?: string[];
-  stream: true;
+function toCitations(raw: unknown): Citation[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw
+    .filter((entry): entry is Record<string, unknown> => typeof entry === 'object' && entry !== null)
+    .map((entry) => ({
+      item_id: String(entry['item_id'] ?? ''),
+      title: String(entry['title'] ?? ''),
+      snippet: String(entry['snippet'] ?? ''),
+      score: Number(entry['score'] ?? 0),
+    }))
+    .filter((citation) => citation.item_id.length > 0);
+}
+
+function toMessage(raw: RawMessage): ChatMessage {
+  return {
+    id: raw.id,
+    role: (raw.role as Role) ?? 'assistant',
+    content: raw.content,
+    citations: toCitations(raw.citations),
+    tool_calls: Array.isArray(raw.tool_calls)
+      ? (raw.tool_calls as ChatMessage['tool_calls'])
+      : [],
+    created_at: raw.created_at,
+  };
+}
+
+function toConversation(raw: RawConversationSummary): Conversation {
+  return {
+    id: raw.id,
+    title: raw.title,
+    created_at: raw.created_at,
+    updated_at: raw.updated_at,
+  };
 }
 
 export const agentApi = {
-  conversations: (): Promise<Conversation[]> =>
-    apiRequest<Conversation[]>('/agent/conversations', { retries: 0 }),
-  conversation: (id: string): Promise<ConversationDetail> =>
-    apiRequest<ConversationDetail>(`/agent/conversations/${encodeURIComponent(id)}`, { retries: 0 }),
+  conversations: async (): Promise<Conversation[]> => {
+    const page = await apiRequest<RawConversationPage>('/agent/conversations', {
+      query: { page_size: 50 },
+      retries: 0,
+    });
+    return (page.items ?? []).map(toConversation);
+  },
+  conversation: async (id: string): Promise<ConversationDetail> => {
+    const detail = await apiRequest<RawConversationDetail>(
+      `/agent/conversations/${encodeURIComponent(id)}`,
+      { retries: 0 },
+    );
+    return {
+      ...toConversation(detail),
+      messages: (detail.messages ?? []).map(toMessage),
+    };
+  },
   removeConversation: (id: string): Promise<{ id: string }> =>
     apiRequest<{ id: string }>(`/agent/conversations/${encodeURIComponent(id)}`, {
       method: 'DELETE',
@@ -91,10 +139,9 @@ export interface ChatStreamHandlers {
     message_id: string;
     finish_reason: string;
     citations?: Citation[];
-    usage?: { input_tokens: number; output_tokens: number };
+    tool_calling?: boolean;
   }) => void;
   onError?: (error: unknown) => void;
-  onToolCall?: (payload: { name: string; arguments: Record<string, unknown>; result_summary: string }) => void;
 }
 
 export interface ChatStreamHandle {
@@ -102,24 +149,30 @@ export interface ChatStreamHandle {
   done: Promise<void>;
 }
 
+export interface ChatRequestBody {
+  conversation_id: string | null;
+  messages: Array<{ role: Role; content: string }>;
+  context_item_ids?: string[];
+  stream: true;
+}
+
 /**
- * 打开对话流（SSE over fetch）。
- * - `terminalEvents: ['message.completed']` 命中后主动结束，避免服务端保持连接时挂死
- * - 网络中断由 sse 客户端按 1s→15s 退避重连，最多 5 次
- * - 用户点「停止」调用 close() → AbortController 取消，服务端随之终止生成
+ * 对话流（SSE over fetch）：
+ * - `terminalEvents: ['message.completed']` 命中后主动结束
+ * - 网络类错误退避重连（≤5 次），参数/404/401 不重连
+ * - 用户「停止」→ close() 取消，服务端终止上游调用
  */
 export function openChatStream(
   body: ChatRequestBody,
   handlers: ChatStreamHandlers,
   options: { signal?: AbortSignal } = {},
 ): ChatStreamHandle {
-  const handle = openSseStream('/agent/chat', {
+  return openSseStream('/agent/chat', {
     method: 'POST',
     body,
     signal: options.signal,
     terminalEvents: ['message.completed'],
     maxRetries: 5,
-    onOpen: () => undefined,
     onEvent: (event) => {
       let payload: unknown;
       try {
@@ -134,20 +187,16 @@ export function openChatStream(
         case 'message.delta':
           handlers.onDelta?.(payload as { message_id: string; delta: string });
           break;
-        case 'message.completed':
-          handlers.onCompleted?.(
-            payload as {
-              message_id: string;
-              finish_reason: string;
-              citations?: Citation[];
-            },
-          );
+        case 'message.completed': {
+          const completed = payload as {
+            message_id: string;
+            finish_reason: string;
+            citations?: unknown;
+            tool_calling?: boolean;
+          };
+          handlers.onCompleted?.({ ...completed, citations: toCitations(completed.citations) });
           break;
-        case 'tool.call':
-          handlers.onToolCall?.(
-            payload as { name: string; arguments: Record<string, unknown>; result_summary: string },
-          );
-          break;
+        }
         case 'error':
           handlers.onError?.(payload);
           break;
@@ -157,7 +206,109 @@ export function openChatStream(
     },
     onError: (error) => handlers.onError?.(error),
   });
-  return handle;
 }
 
-export type GeneratedSchemas = components['schemas'];
+// ---------------------------------------------------------------------------
+// AI 任务与建议（契约 9.6 / B8）
+// ---------------------------------------------------------------------------
+
+export type AiTask = components['schemas']['AiTaskOut'];
+export type AiTaskType = AiTask['type'];
+export type AiTaskStatus = AiTask['status'];
+export type Suggestion = components['schemas']['SuggestionOut'];
+
+export interface AiTaskInput {
+  type: 'organize' | 'summarize' | 'tagging' | 'linking' | 'profile_refresh' | 'graph_build';
+  item_ids?: string[];
+  options?: Record<string, unknown>;
+}
+
+export const tasksApi = {
+  list: async (query: { status?: string; type?: string } = {}): Promise<AiTask[]> => {
+    const page = await apiRequest<components['schemas']['AiTaskPage']>('/ai/tasks', {
+      query: { page_size: 50, status: query.status, type: query.type },
+      retries: 0,
+    });
+    return page.items ?? [];
+  },
+  get: (id: string): Promise<AiTask> =>
+    apiRequest<AiTask>(`/ai/tasks/${encodeURIComponent(id)}`, { retries: 0 }),
+  create: (input: AiTaskInput): Promise<AiTask> =>
+    apiRequest<AiTask>('/ai/tasks', { method: 'POST', body: input, retries: 0 }),
+  cancel: (id: string): Promise<AiTask> =>
+    apiRequest<AiTask>(`/ai/tasks/${encodeURIComponent(id)}/cancel`, {
+      method: 'POST',
+      retries: 0,
+    }),
+};
+
+export const suggestionsApi = {
+  list: async (query: { status?: string; type?: string } = {}): Promise<Suggestion[]> => {
+    const page = await apiRequest<components['schemas']['SuggestionPage']>('/ai/suggestions', {
+      query: { page_size: 50, status: query.status, type: query.type },
+      retries: 0,
+    });
+    return page.items ?? [];
+  },
+  accept: (id: string): Promise<unknown> =>
+    apiRequest<unknown>(`/ai/suggestions/${encodeURIComponent(id)}/accept`, {
+      method: 'POST',
+      retries: 0,
+    }),
+  reject: (id: string): Promise<unknown> =>
+    apiRequest<unknown>(`/ai/suggestions/${encodeURIComponent(id)}/reject`, {
+      method: 'POST',
+      retries: 0,
+    }),
+};
+
+export function useAiTasks(query: { status?: string; type?: string } = {}) {
+  return useQuery({
+    queryKey: queryKeys.agent.tasks(query),
+    queryFn: () => tasksApi.list(query),
+    retry: false,
+    refetchInterval: 3_000,
+    refetchIntervalInBackground: false,
+  });
+}
+
+export function useAiSuggestions(query: { status?: string; type?: string } = {}) {
+  return useQuery({
+    queryKey: queryKeys.agent.suggestions(query),
+    queryFn: () => suggestionsApi.list(query),
+    retry: false,
+    staleTime: 10_000,
+  });
+}
+
+export function useCreateAiTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: AiTaskInput) => tasksApi.create(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.agent.tasksList() });
+    },
+  });
+}
+
+export function useCancelAiTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => tasksApi.cancel(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.agent.tasksList() });
+    },
+  });
+}
+
+export function useDecideSuggestion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action }: { id: string; action: 'accept' | 'reject' }) =>
+      action === 'accept' ? suggestionsApi.accept(id) : suggestionsApi.reject(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.agent.suggestionsList() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.items.all });
+    },
+  });
+}

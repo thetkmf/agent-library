@@ -1,0 +1,31 @@
+# F12-1 打包配置（NSIS + 后端 sidecar）
+# 后端产物：resources/backend/pkb-backend.exe（PyInstaller），由 B13 的打包脚本产出。
+appId: com.personal.pkb
+productName: PersonalKnowledgeBase
+copyright: Personal use only
+directories:
+  output: release
+  buildResources: build
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+extraResources:
+  # 后端可执行文件与静态资源；缺失时安装包仍可构建，但启动会提示 BACKEND_NOT_FOUND
+  - from: ../backend/dist/pkb-backend
+    to: backend
+    filter:
+      - '**/*'
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-setup.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: 个人知识库
+  deleteAppDataOnUninstall: false

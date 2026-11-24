@@ -8,6 +8,11 @@ import { NoteEditorPage } from '@/features/notes/NoteEditorPage';
 import { NotesListPage } from '@/features/notes/NotesListPage';
 import { NewNotePage } from '@/features/notes/NewNotePage';
 import { SystemStatusPage } from '@/features/system/SystemStatusPage';
+import { GraphPage } from '@/features/graph/GraphPage';
+import { LearningPage } from '@/features/learning/LearningPage';
+import { RemindersPage } from '@/features/reminders/RemindersPage';
+import { SettingsPage } from '@/features/settings/SettingsPage';
+import { TasksPage } from '@/features/tasks/TasksPage';
 import { TimelinePage } from '@/features/timeline/TimelinePage';
 
 /**
@@ -25,6 +30,11 @@ export function AppRoutes(): JSX.Element {
       <Route path="/search" element={<SearchPage />} />
       <Route path="/agent" element={<AgentPage />} />
       <Route path="/agent/:conversationId" element={<AgentPage />} />
+      <Route path="/tasks" element={<TasksPage />} />
+      <Route path="/reminders" element={<RemindersPage />} />
+      <Route path="/learning" element={<LearningPage />} />
+      <Route path="/graph" element={<GraphPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
       <Route path="/timeline" element={<TimelinePage />} />
       {NAV_ITEMS.filter((item) => item.stage === 'planned' || item.id === 'system-status').map((item) =>
         item.stage === 'ready' ? (

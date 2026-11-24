@@ -31,7 +31,7 @@ export interface UseChatStreamResult {
   messages: ChatMessageView[];
   streaming: boolean;
   error: string | null;
-  send: (text: string) => void;
+  send: (text: string, contextItemIds?: string[]) => void;
   stop: () => void;
   retryLast: () => void;
   clearError: () => void;
@@ -105,7 +105,7 @@ export function useChatStream({
   }, []);
 
   const run = useCallback(
-    (text: string, history: Array<{ role: Role; content: string }>) => {
+    (text: string, history: Array<{ role: Role; content: string }>, contextItemIds: string[] = []) => {
       const trimmed = text.trim();
       if (trimmed.length === 0) {
         return;
@@ -136,6 +136,7 @@ export function useChatStream({
         {
           conversation_id: conversationRef.current,
           messages: [...history, { role: 'user', content: trimmed }],
+          context_item_ids: contextItemIds.length > 0 ? contextItemIds : undefined,
           stream: true,
         },
         {
@@ -191,11 +192,11 @@ export function useChatStream({
   );
 
   const send = useCallback(
-    (text: string) => {
+    (text: string, contextItemIds: string[] = []) => {
       const history = messagesRef.current
         .filter((message) => !message.pending && message.content.trim().length > 0)
         .map((message) => ({ role: message.role, content: message.content }));
-      run(text, history);
+      run(text, history, contextItemIds);
     },
     [run],
   );

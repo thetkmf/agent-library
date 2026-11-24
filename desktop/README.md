@@ -198,7 +198,16 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - [x] 可访问性：跳转主内容链接、`aria-current`、`role=alert`、`aria-busy`、`prefers-reduced-motion`
 - [x] 测试：新增 store / Sidebar / 路由 / 状态组件测试，合计 47 项
 
-## 8.1 F7 AI 对话（F7-1/F7-2，Mock 先行，待 B7 切真实）
+## 8.1 F8–F11 概览
+
+| 页面 | 能力 |
+| --- | --- |
+| 提醒 `/reminders` | 列表（状态筛选/逾期标记）、创建（本地时区→UTC）、重复规则、完成/稍后 10 分钟/取消；订阅 `/events/stream` 的 `reminder.due` 触发桌面通知（权限被拒降级为页内提示） |
+| 学习计划 `/learning` | 进度汇总（计划数、完成率、连续学习天数）、计划创建/状态切换（`expected_version`）/删除、里程碑增删与状态联动（done→100%） |
+| 知识图谱 `/graph` | 自研确定性力导向布局（纯函数、种子稳定）+ SVG 渲染、`depth/types/limit` 过滤、节点详情与条目跳转、统计卡；>500 节点提示降采样 |
+| 设置 `/settings` | DeepSeek 唯一供应商、模型白名单、Key 只写不回显 + `has_key`、连通性测试、外联开关二次确认、自动整理、主题、存储/嵌入信息、画像展示与刷新 |
+
+## 8.2 F7 AI 对话与任务中心（真实契约）
 
 | 能力 | 实现 |
 | --- | --- |
@@ -213,7 +222,7 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 > `/agent/*` 目前由 `src/mocks/agent.ts` 提供（B7 未产出）；B7 合入后删除 mock、重跑 `gen:api`、切真实契约。
 > 待办：F7-3 上下文选择器、F7-4 任务中心、F7-5 建议采纳。
 
-## 8.2 F6 检索（Mock 先行，待 B6 切真实）
+## 8.3 F6 检索
 
 | 能力 | 实现 |
 | --- | --- |
@@ -225,10 +234,9 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 | 索引态 | 显示就绪状态、已索引/待索引、嵌入模型与维度、最近更新时间、任务进度；支持增量/全量重建（202，嵌入不可用时禁用并提示） |
 | 状态 | 未输入引导 / 加载骨架 / 无结果 / 错误可重试 / 条件非法可重置 |
 
-> `/search`、`/index/status`、`/index/reindex` 目前由 `src/mocks/search.ts` 提供（B6 未产出）；
-> B6 合入后删除 mock、重跑 `gen:api`、切真实契约（F6-4）。
+> `/search`、`/index/status`、`/index/reindex` 已切真实接口（B6），mock 仅作测试夹具。
 
-## 8.3 F5 文件管理
+## 8.4 F5 文件管理
 
 | 能力 | 实现 |
 | --- | --- |
@@ -240,7 +248,7 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 | 下载 | 带鉴权下载 blob，文件名优先取 `Content-Disposition` 的 RFC 5987 字段；不拼本地路径 |
 | 预览 | 图片/纯文本走 blob + object URL，关闭即 `revokeObjectURL`；其他类型提示下载查看 |
 
-## 8.4 F4 时间轴与标签
+## 8.5 F4 时间轴与标签
 
 | 能力 | 实现 |
 | --- | --- |
@@ -255,7 +263,7 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 
 测试覆盖：分组边界（含跨年 ISO 周）、时区换算、筛选解析与 URL 往返、虚拟窗口区间、1 万条性能用例、页面级筛选/批量打标、批量部分失败重试。
 
-## 8.5 F3 编辑器（笔记 / TeX）
+## 8.6 F3 编辑器（笔记 / TeX）
 
 | 能力 | 实现 |
 | --- | --- |
@@ -285,7 +293,7 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - 后端尚未实现（B0），因此当前状态常为 `BACKEND_NOT_FOUND`；后端就绪后无需改前端即可自动接管
 - 打包与安装包（electron-builder + PyInstaller）属于 F12
 - 接口类型当前覆盖系统接口与 B2 的 `/items`；后续 B3–B12 完成后重跑 `npm run gen:api` 扩展（B13 固化）
-- 检索、AI、提醒、图谱、设置等页面分别由 F6–F11 实现，当前为占位页
+- F12 打包：`electron-builder.yml` 已就绪（NSIS + sidecar），待补图标、接入 PyInstaller 产物并实测安装包；E2E 见 `tests/e2e/README.md`
 - F3 已切真实 `/items`（B2），并按真实契约验证了创建/正文读写/409 冲突/幂等回放
 - F4 已切真实 `/timeline`、`/tags`（B3），并验证分组/游标/筛选/标签计数/批量关联与解除
 - F5 已切真实 `/files`、`/uploads`（B4），并验证小文件上传/下载（含 Range）/分片乱序重传/缺片校验/会话过期
