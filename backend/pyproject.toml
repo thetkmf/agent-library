@@ -12,6 +12,8 @@ dependencies = [
   "uvicorn[standard]>=0.30",
   "pydantic>=2.7,<3.0",
   "pydantic-settings>=2.3",
+  "sqlalchemy>=2.0,<3.0",
+  "alembic>=1.13",
 ]
 
 [project.optional-dependencies]
@@ -34,6 +36,10 @@ src = ["app", "tests"]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "PTH", "RUF"]
 # 中文用户文案需要全角标点，不视为歧义字符
 ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+# Alembic 自动生成的长行不改，避免下次 autogenerate 反复冲突
+"migrations/**" = ["E501"]
 
 [tool.mypy]
 python_version = "3.11"

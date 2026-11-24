@@ -67,6 +67,9 @@ class Settings(BaseSettings):
     )
     log_file: Path | None = None
     data_dir: Path = Field(default_factory=default_data_dir)
+    # 显式覆盖数据库地址（测试用）；默认落在 <data_dir>/db/pkb.sqlite3
+    database_url: str | None = None
+    auto_migrate: bool = True
     log_level: str = "INFO"
     slow_request_ms: int = Field(default=1000, ge=0)
     privacy_allow_external_calls: bool = False

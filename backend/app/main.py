@@ -15,6 +15,8 @@ from .core.errors import register_exception_handlers
 from .core.logging import configure_logging, get_logger
 from .core.middleware import RequestContextMiddleware
 from .core.paths import ensure_layout
+from .db.migrate import run_migrations
+from .db.session import create_engine_for, create_session_factory
 
 logger = get_logger("pkb.app")
 
@@ -24,6 +26,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Prepare the data layout on startup and log lifecycle events."""
     settings: Settings = app.state.settings
     layout = ensure_layout(settings)
+    if settings.auto_migrate:
+        run_migrations(settings)
+    engine = create_engine_for(settings)
+    app.state.engine = engine
+    app.state.session_factory = create_session_factory(engine)
     logger.info(
         "app.started",
         extra={
@@ -37,6 +44,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         yield
     finally:
+        engine.dispose()
         logger.info("app.stopped", extra={"fields": {"version": settings.app_version}})
 
 
