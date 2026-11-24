@@ -16,6 +16,7 @@
 | npm | >= 10 |
 | 后端 | 可选；未就绪时界面进入「启动失败 / BACKEND_NOT_FOUND」态，不影响前端开发 |
 
+> 仓库内已提供 `.nvmrc`（24）与 `.node-version`（24.18.0），用 nvm/fnm/volta 可自动切换。
 > 本机若 `node -v` 仍是 16.x，请把 Node 20+ 的目录放到 PATH 前面，例如：
 >
 > ```bash
@@ -169,6 +170,20 @@ desktop/
 | 取消 | 传 `AbortSignal`，取消抛 `kind: 'aborted'` 且不重试 |
 | SSE | 网络中断按 1s→2s→4s…（≤15s）重连，最多 5 次；**服务端正常关闭视为完成不重连**；`terminalEvents`（如 `message.completed`）命中后主动结束；页面隐藏时暂停重连 |
 | 未就绪 | 后端未启动时 `kind: 'unavailable'`，不发请求 |
+
+## 7.1 契约 Mock（F3–F5 前置）
+
+B2–B4 后端接口未产出前，用 Mock 驱动 UI（约定见《开发过程》13.6）：
+
+```bash
+VITE_USE_MOCKS=1 npm run dev          # 开发态启用
+# 运行态：DevTools 执行 localStorage.setItem('pkb.mock','1') 后刷新
+```
+
+- 位置：`src/mocks/`（`README.md` 内有场景索引，按 `F3/*` 等 id 与任务对应）
+- 只替换 fetch 实现，请求仍走 `src/api/client.ts`，信封/超时/重试/错误映射一致
+- 未覆盖路径返回 `30001` 信封并提示，避免静默通过
+- B2–B4 合入后：删除对应 mock、`npm run gen:api`、切真实接口
 
 ## 8. F1 完成情况
 

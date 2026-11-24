@@ -217,6 +217,11 @@ export function openSseStream(path: string, options: SseStreamOptions): SseHandl
           break;
         }
         options.onError?.(error);
+        // 认证失败重连没有意义（token 未变化），直接收尾；
+        // 凭据续期由调用方（F7 对话页）处理后再重新开流。
+        if (error.kind === 'auth') {
+          break;
+        }
         if (attempt >= maxRetries) {
           break;
         }

@@ -227,12 +227,13 @@ describe('openSseStream', () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it('HTTP 错误（如 401）会触发 onError', async () => {
+  it('401 只触发一次 onError，不做无意义重连', async () => {
     setupFetch(() => new Response('unauthorized', { status: 401 }));
     const onError = vi.fn();
 
     const handle = openSseStream('/agent/chat', {
-      maxRetries: 0,
+      maxRetries: 3,
+      initialDelayMs: 1,
       onEvent: () => undefined,
       onError,
     });

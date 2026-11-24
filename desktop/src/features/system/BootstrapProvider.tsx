@@ -1,6 +1,7 @@
 import { useCallback, useEffect, type ReactNode } from 'react';
 import { configureApi } from '@/api/config';
 import { getBridge } from '@/bridge';
+import { resolveApiBaseUrl } from '@/mocks';
 import { BootstrapContext } from './bootstrap-context';
 import { useBootstrap } from './useBootstrap';
 
@@ -23,7 +24,8 @@ export function BootstrapProvider({ children }: { children: ReactNode }): JSX.El
   }, []);
 
   useEffect(() => {
-    configureApi({ baseUrl, token, refreshCredentials });
+    // mock 模式下后端未就绪时回落到占位地址，UI 可独立开发
+    configureApi({ baseUrl: resolveApiBaseUrl(baseUrl), token, refreshCredentials });
   }, [baseUrl, token, refreshCredentials]);
 
   return <BootstrapContext.Provider value={value}>{children}</BootstrapContext.Provider>;

@@ -25,8 +25,12 @@ export type QueryValue =
 
 export interface RequestOptions {
   method?: HttpMethod;
-  /** JSON 请求体；与 formData 互斥 */
+  /** JSON 请求体；与 formData / textBody 互斥 */
   body?: unknown;
+  /** 纯文本请求体（如 text/plain 正文保存），与 body 互斥 */
+  textBody?: string;
+  /** 配合 textBody 使用，默认 text/plain; charset=utf-8 */
+  contentType?: string;
   formData?: FormData;
   query?: Record<string, QueryValue>;
   headers?: Record<string, string>;
@@ -106,7 +110,8 @@ function errorFromPayload(payload: unknown, status: number): ApiError {
       kind,
       code: payload.code,
       message: message && message.length > 0 ? message : displayFallbackFor(kind),
-      details: payload.details ?? null,
+      // 契约 4.1/12.3：409 的 data 携带服务端当前对象，需保留给「刷新 / 覆盖」使用
+      details: payload.details ?? payload.data ?? null,
       requestId: payload.request_id ?? null,
       httpStatus: status,
     });
@@ -159,6 +164,9 @@ async function performRequest<T>(
   let body: BodyInit | undefined;
   if (options.formData) {
     body = options.formData;
+  } else if (options.textBody !== undefined) {
+    headers['Content-Type'] = options.contentType ?? 'text/plain; charset=utf-8';
+    body = options.textBody;
   } else if (options.body !== undefined) {
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(options.body);
@@ -286,6 +294,11 @@ export const api = {
     apiRequest<T>(path, { ...options, method: 'PATCH', body }),
   put: <T,>(path: string, body?: unknown, options: Omit<RequestOptions, 'method' | 'body'> = {}) =>
     apiRequest<T>(path, { ...options, method: 'PUT', body }),
+  putText: <T,>(
+    path: string,
+    text: string,
+    options: Omit<RequestOptions, 'method' | 'body' | 'textBody'> = {},
+  ) => apiRequest<T>(path, { ...options, method: 'PUT', textBody: text }),
   delete: <T,>(path: string, options: Omit<RequestOptions, 'method' | 'body'> = {}) =>
     apiRequest<T>(path, { ...options, method: 'DELETE' }),
 };

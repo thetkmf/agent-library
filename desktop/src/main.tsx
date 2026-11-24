@@ -2,8 +2,15 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App } from '@/app/App';
+import { installMocks, isMockEnabled } from '@/mocks';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import '@/styles/global.css';
+
+// 契约 Mock：在首次请求前装配（B2–B4 合入后移除）
+if (isMockEnabled()) {
+  installMocks();
+  console.info('[mock] 已启用契约 Mock（src/mocks）');
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

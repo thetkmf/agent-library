@@ -120,6 +120,39 @@ describe('apiRequest 错误映射', () => {
     expect(apiError.httpStatus).toBe(409);
   });
 
+  it('409 冲突把服务端当前对象放在 details（契约 4.1/12.3）', async () => {
+    const current = { id: 'i1', title: '标题', version: 5, updated_at: '2026-11-24T04:00:00Z' };
+    setupFetch(async () =>
+      jsonResponse({ code: API_ERROR_CODES.versionConflict, message: '内容已被修改', data: current, request_id: 'r-1' }, 409),
+    );
+
+    const error = (await apiRequest('/items/i1/content', {
+      method: 'PUT',
+      textBody: '本地正文',
+      query: { expected_version: 1 },
+    }).catch((reason: unknown) => reason)) as ApiError;
+
+    expect(error.kind).toBe('conflict');
+    expect(error.isVersionConflict).toBe(true);
+    expect(error.details).toEqual(current);
+    expect(error.requestId).toBe('r-1');
+  });
+
+  it('textBody 以 text/plain 发送（正文读写接口）', async () => {
+    setupFetch(async () => jsonResponse(envelope({ version: 2 })));
+
+    await apiRequest('/items/i1/content', {
+      method: 'PUT',
+      textBody: '# 正文',
+      query: { expected_version: 1 },
+    });
+
+    const headers = calls[0]?.init.headers as Record<string, string>;
+    expect(headers['Content-Type']).toBe('text/plain; charset=utf-8');
+    expect(calls[0]?.init.body).toBe('# 正文');
+    expect(calls[0]?.url).toContain('expected_version=1');
+  });
+
   it('非信封错误响应按 HTTP 状态兜底', async () => {
     setupFetch(async () => new Response('<html>boom</html>', { status: 500 }));
 
