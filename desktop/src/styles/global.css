@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --pkb-surface: 246 247 249;
+    --pkb-elevated: 255 255 255;
+    --pkb-sunken: 238 240 244;
+    --pkb-border: 216 220 227;
+    --pkb-content: 26 30 37;
+    --pkb-muted: 106 114 128;
+    --pkb-accent: 46 105 246;
+    --pkb-accent-strong: 31 84 208;
+    --pkb-success: 22 138 91;
+    --pkb-warning: 176 116 12;
+    --pkb-danger: 197 48 48;
+  }
+
+  [data-theme='dark'] {
+    color-scheme: dark;
+    --pkb-surface: 16 18 22;
+    --pkb-elevated: 24 27 33;
+    --pkb-sunken: 12 14 17;
+    --pkb-border: 48 53 62;
+    --pkb-content: 233 236 241;
+    --pkb-muted: 148 156 170;
+    --pkb-accent: 96 143 255;
+    --pkb-accent-strong: 128 168 255;
+    --pkb-success: 66 184 131;
+    --pkb-warning: 216 158 60;
+    --pkb-danger: 240 106 106;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-surface font-sans text-content antialiased;
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-accent;
+  }
+
+  ::selection {
+    @apply bg-accent/20;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .pkb-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--pkb-border)) transparent;
+  }
+}
