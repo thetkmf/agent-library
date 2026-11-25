@@ -57,3 +57,6 @@ desktop.ini
 .vscode/
 backend/build/
 backend/dist/
+backend/build/models/
+backend/.smoke-data/
+*.onnx

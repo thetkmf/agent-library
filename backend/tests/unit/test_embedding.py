@@ -77,10 +77,20 @@ def test_embedding_without_model_raises_model_not_configured(tmp_path: Path) -> 
     assert excinfo.value.code == ErrorCode.MODEL_NOT_CONFIGURED
 
 
+def _write_complete_model(model_dir: Path, *, onnx_name: str = "model.onnx") -> bytes:
+    """13.23：离线模型目录必须含 onnx + tokenizer.json + config.json + vocab.txt。"""
+    model_dir.mkdir(parents=True, exist_ok=True)
+    payload = b"fake-model"
+    (model_dir / onnx_name).write_bytes(payload)
+    (model_dir / "tokenizer.json").write_text("{}", encoding="utf-8")
+    (model_dir / "config.json").write_text("{}", encoding="utf-8")
+    (model_dir / "vocab.txt").write_text("a", encoding="utf-8")
+    return payload
+
+
 def test_model_sha256_mismatch_marks_error(tmp_path: Path) -> None:
     model_dir = tmp_path / "model"
-    model_dir.mkdir()
-    (model_dir / "model.onnx").write_bytes(b"fake-model")
+    _write_complete_model(model_dir)
     service = EmbeddingService(
         _settings(tmp_path, embedding_model_dir=model_dir, embedding_model_sha256="0" * 64)
     )
@@ -91,9 +101,7 @@ def test_model_sha256_match_marks_ready(tmp_path: Path) -> None:
     import hashlib
 
     model_dir = tmp_path / "model"
-    model_dir.mkdir()
-    payload = b"fake-model"
-    (model_dir / "model.onnx").write_bytes(payload)
+    payload = _write_complete_model(model_dir)
     service = EmbeddingService(
         _settings(
             tmp_path,

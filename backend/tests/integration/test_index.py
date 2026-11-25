@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 from app.core.config import Settings
+from app.db.base import utcnow
 from app.db.models import AiTask
 from app.main import create_app
 from app.services.embedding import DeterministicEmbedder, EmbeddingService
@@ -250,3 +251,25 @@ def test_status_without_tasks_reports_nulls(client: TestClient, auth: dict[str, 
     assert data["pending_count"] == 0
     assert data["task"] is None
     assert data["last_updated_at"] is None
+
+
+def test_status_reports_failed_task(client: TestClient, auth: dict[str, str]) -> None:
+    """B15 修复：失败的重建任务也要出现在 /index/status，便于前端提示重试。"""
+    install_sync_index(client)
+    factory = client.app.state.session_factory
+    with factory() as session:
+        task = AiTask(
+            type="reindex",
+            status="failed",
+            progress=100,
+            input_data={"mode": "full"},
+            error_data={"code": 50006, "message": "1 个条目索引失败"},
+            finished_at=utcnow(),
+        )
+        session.add(task)
+        session.commit()
+        task_id = task.id
+
+    status = client.get("/api/v1/index/status", headers=auth).json()["data"]
+    assert status["task"]["id"] == task_id
+    assert status["task"]["status"] == "failed"
