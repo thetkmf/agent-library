@@ -4,7 +4,10 @@ updates:
     directory: /backend
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       python-minor:
         patterns: ["*"]
@@ -14,7 +17,13 @@ updates:
     directory: /desktop
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # 0.5.8 起要求 ESLint 9+，当前项目仍在 ESLint 8，待单独升级
+      - dependency-name: eslint-plugin-react-refresh
+        versions: [">=0.5.8"]
     groups:
       npm-minor:
         patterns: ["*"]
@@ -24,4 +33,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
