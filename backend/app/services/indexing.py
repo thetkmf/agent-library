@@ -81,8 +81,8 @@ class IndexService:
     def _last_finished_task(self, session: Session) -> AiTask | None:
         stmt = (
             select(AiTask)
-            .where(AiTask.type == REINDEX, AiTask.status == "succeeded")
-            .order_by(AiTask.finished_at.desc())
+            .where(AiTask.type == REINDEX, AiTask.status.in_(("succeeded", "failed", "canceled")))
+            .order_by(AiTask.finished_at.desc(), AiTask.created_at.desc())
             .limit(1)
         )
         return session.scalars(stmt).first()

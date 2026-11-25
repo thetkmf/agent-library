@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import threading
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -18,6 +19,9 @@ logger = get_logger("pkb.embedding")
 
 MODEL_NAME = "bge-small-zh-v1.5"
 FASTEMBED_MODEL_ID = "BAAI/bge-small-zh-v1.5"
+# fastembed 的 ONNX 文件名（新版导出为 model_optimized.onnx，旧版为 model.onnx）
+LOCAL_ONNX_NAMES = ("model_optimized.onnx", "model.onnx")
+REQUIRED_MODEL_FILES = ("tokenizer.json", "config.json", "vocab.txt")
 
 
 @runtime_checkable
@@ -66,6 +70,13 @@ class FastEmbedEmbedder:
     def cache_dir(self) -> Path:
         return build_layout(self.settings).cache_dir / "fastembed"
 
+    @property
+    def model_dir(self) -> Path | None:
+        """Offline model directory configured by the installer (``PKB_EMBEDDING_MODEL_DIR``)."""
+        if self.settings.embedding_model_dir is None:
+            return None
+        return Path(self.settings.embedding_model_dir)
+
     def _load(self) -> object:
         if self._model is not None:
             return self._model
@@ -76,6 +87,26 @@ class FastEmbedEmbedder:
                 from fastembed import TextEmbedding
             except ImportError as exc:  # pragma: no cover - 依赖缺失时
                 raise AppError(ErrorCode.EMBEDDING_FAILED, "本地嵌入组件未安装") from exc
+            model_dir = self.model_dir
+            if model_dir is not None:
+                # 随包模型：只从本地目录加载，禁止联网与写缓存
+                # 显式强制离线：随包模型只读本地目录，杜绝任何外网尝试
+                os.environ["HF_HUB_OFFLINE"] = "1"
+                os.environ["TRANSFORMERS_OFFLINE"] = "1"
+                try:
+                    self._model = TextEmbedding(
+                        model_name=FASTEMBED_MODEL_ID,
+                        specific_model_path=str(model_dir),
+                        local_files_only=True,
+                        threads=self.settings.embedding_max_workers,
+                    )
+                except Exception as exc:  # pragma: no cover - 依赖/文件异常
+                    logger.error(
+                        "embedding.offline_load_failed",
+                        extra={"fields": {"reason": type(exc).__name__}},
+                    )
+                    raise AppError(ErrorCode.EMBEDDING_FAILED, "离线嵌入模型加载失败") from exc
+                return self._model
             self.cache_dir.mkdir(parents=True, exist_ok=True)
             self._model = TextEmbedding(
                 model_name=FASTEMBED_MODEL_ID,
@@ -110,6 +141,27 @@ class EmbeddingStatus:
         return self.status == "ready"
 
 
+def _verify_local_model_dir(model_dir: Path, expected_sha256: str | None) -> str:
+    """Return ready/missing/error for an offline model directory (§13.23 B15)."""
+    if not model_dir.is_dir():
+        return "missing"
+    if any(not (model_dir / name).is_file() for name in REQUIRED_MODEL_FILES):
+        return "missing"
+    onnx_file = next(
+        (model_dir / name for name in LOCAL_ONNX_NAMES if (model_dir / name).is_file()), None
+    )
+    if onnx_file is None:
+        return "missing"
+    if expected_sha256:
+        digest = _sha256_of(onnx_file)
+        if digest != expected_sha256.strip().lower():
+            logger.error(
+                "embedding.model_hash_mismatch", extra={"fields": {"file": onnx_file.name}}
+            )
+            return "error"
+    return "ready"
+
+
 def _sha256_of(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -136,15 +188,8 @@ class EmbeddingService:
         """Check local model files without downloading anything."""
         model_dir = self._model_dir()
         if model_dir is not None:
-            if not model_dir.is_dir():
-                return "missing"
-            expected = self.settings.embedding_model_sha256
-            if expected:
-                digest = _sha256_of(model_dir / "model.onnx")
-                if digest != expected.strip().lower():
-                    logger.error("embedding.model_hash_mismatch")
-                    return "error"
-        elif not self._fastembed_cache_present():
+            return _verify_local_model_dir(model_dir, self.settings.embedding_model_sha256)
+        if not self._fastembed_cache_present():
             return "missing"
         return "ready"
 
@@ -181,13 +226,24 @@ class EmbeddingService:
         return self._status
 
     # ---- encode -----------------------------------------------------
+    def _ensure_embedder(self) -> Embedder:
+        """Lazily build the fastembed embedder when the model is available locally.
+
+        随包模型（``embedding_model_dir``）在安装包里是常驻资源，不需要等预热任务；
+        第一次索引/检索时才构建，避免启动变慢。
+        """
+        if self._embedder is not None:
+            return self._embedder
+        if self.verify_model() != "ready":
+            raise AppError(ErrorCode.MODEL_NOT_CONFIGURED, "本地嵌入模型尚未就绪")
+        self._embedder = FastEmbedEmbedder(self.settings)
+        return self._embedder
+
     def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
         """Batch encode texts, validating the configured dimension."""
         if not texts:
             return []
-        embedder = self._embedder
-        if embedder is None:
-            raise AppError(ErrorCode.MODEL_NOT_CONFIGURED, "本地嵌入模型尚未就绪")
+        embedder = self._ensure_embedder()
         vectors: list[list[float]] = []
         batch = max(1, self.settings.embedding_batch_size)
         for start in range(0, len(texts), batch):
