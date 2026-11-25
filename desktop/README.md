@@ -198,6 +198,25 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - [x] 可访问性：跳转主内容链接、`aria-current`、`role=alert`、`aria-busy`、`prefers-reduced-motion`
 - [x] 测试：新增 store / Sidebar / 路由 / 状态组件测试，合计 47 项
 
+## 8.0 打包与验收（F12/F13）
+
+```bash
+npm run stage:artifacts   # 暂存后端 sidecar + 离线模型（校验 sha256，产物不入库）
+npm run dist:dir          # 免安装目录（release/win-unpacked）
+npm run dist              # NSIS 安装包（release/*.exe）
+node scripts/verify-package.mjs release/win-unpacked/PersonalKnowledgeBase.exe
+npx playwright test       # 关键路径 E2E（可用 E2E_BACKEND_CMD 指向后端解释器）
+```
+
+| 项 | 说明 |
+| --- | --- |
+| sidecar | 来源默认 `../../后端-test-tube-langchain/backend/dist/pkb-backend`，可用 `--backend` / `PKB_BACKEND_DIST` 覆盖；打进 `resources/backend`，不进 asar |
+| 离线模型 | 来源默认 `%LOCALAPPDATA%/pkb-build-cache/bge-small-zh-v1.5`，按 13.23 的 7 项 sha256 校验后打进 `resources/models/bge-small-zh-v1.5` |
+| 模型注入 | 打包态主进程设置 `PKB_EMBEDDING_MODEL_DIR`（日志 `embedding.model_dir_injected`），断网首次启动即可用 |
+| 验收脚本 | `verify-package.mjs` 直接启动安装目录 exe，通过 IPC 桥取 token 调 `/health`、`/system/capabilities`，输出 backend/embedding/vector 状态 |
+| 实测 | 安装包 233 MB；`HF_HUB_OFFLINE=1` 下 `embedding=ready`、`vector.ready=true`、`/health 200` |
+| 待办 | 干净 Windows 环境的安装/升级/卸载实测（I6）；安装包未签名 |
+
 ## 8.1 F8–F11 概览
 
 | 页面 | 能力 |
@@ -293,7 +312,7 @@ VITE_USE_MOCKS=1 npm run dev          # 开发态启用
 - 后端尚未实现（B0），因此当前状态常为 `BACKEND_NOT_FOUND`；后端就绪后无需改前端即可自动接管
 - 打包与安装包（electron-builder + PyInstaller）属于 F12
 - 接口类型当前覆盖系统接口与 B2 的 `/items`；后续 B3–B12 完成后重跑 `npm run gen:api` 扩展（B13 固化）
-- F12 打包：`electron-builder.yml` 已就绪（NSIS + sidecar），待补图标、接入 PyInstaller 产物并实测安装包；E2E 见 `tests/e2e/README.md`
+- F12/F13：安装包已内置 sidecar 与离线模型并实测通过；E2E 6 项跑通；干净环境安装/升级/卸载待 I6
 - F3 已切真实 `/items`（B2），并按真实契约验证了创建/正文读写/409 冲突/幂等回放
 - F4 已切真实 `/timeline`、`/tags`（B3），并验证分组/游标/筛选/标签计数/批量关联与解除
 - F5 已切真实 `/files`、`/uploads`（B4），并验证小文件上传/下载（含 Range）/分片乱序重传/缺片校验/会话过期

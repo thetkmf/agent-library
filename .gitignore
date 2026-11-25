@@ -16,8 +16,15 @@ node_modules/
 dist/
 dist-electron/
 build/
+# 桌面端打包资源目录需要跟踪（图标/说明），但暂存的 sidecar 与模型不入库
+!desktop/build/
+desktop/build/backend/
+desktop/build/models/
+desktop/build/STAGED.json
 release/
 release-*/
+test-results/
+playwright-report/
 out/
 *.tsbuildinfo
 

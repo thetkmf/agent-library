@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { app, BrowserWindow, Menu, session } from 'electron';
 import { createLogger, type Logger } from './lib/logger';
@@ -91,6 +92,17 @@ async function bootstrap(): Promise<void> {
   logger.addSecret(token.token);
   if (!token.secure) {
     logger.warn('token.insecure_fallback', { reason: 'safeStorage unavailable' });
+  }
+
+  // F13：打包态把随包模型目录注入后端（离线加载，不联网、不写缓存）
+  if (app.isPackaged) {
+    const modelDir = path.join(process.resourcesPath, 'models', 'bge-small-zh-v1.5');
+    if (fs.existsSync(modelDir)) {
+      process.env.PKB_EMBEDDING_MODEL_DIR = modelDir;
+      logger.info('embedding.model_dir_injected', { dir: 'resources/models/bge-small-zh-v1.5' });
+    } else {
+      logger.warn('embedding.model_dir_missing');
+    }
   }
 
   const launch = resolveBackendLaunch({
