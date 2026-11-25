@@ -119,6 +119,25 @@ Agent 约定：Key 从 `PKB_DEEPSEEK_API_KEY` 或 Windows 凭据管理器读取�
 
 检索 1 万条量级的数字见上文 `/search` 说明（关键词 43 ms、语义 top30 8 ms、混合 37 ms）。
 
+## 打包（sidecar）
+
+```bash
+# 依赖（一次性）：PyInstaller 及其依赖
+uv pip install --python .venv/Scripts/python.exe pyinstaller
+
+# 构建（约 2–3 分钟）
+.venv/Scripts/python.exe -m PyInstaller pkb-backend.spec --noconfirm --distpath dist --workpath build
+
+# 冒烟（默认端口 8898）
+PKB_TOKEN=<32+ 字符> PKB_PORT=8898 PKB_DATA_DIR=<临时目录> dist/pkb-backend/pkb-backend.exe
+curl http://127.0.0.1:8898/health
+```
+
+产物：`backend/dist/pkb-backend/`（约 291 MB，内含 `pkb-backend.exe`，Electron 以额外资源随 NSIS 包分发）。
+- `alembic.ini` 与 `migrations/` 会被打进 `_internal/`，冻结态由 `app/db/migrate.py:_resource_root()` 走 `sys._MEIPASS` 定位；
+- 嵌入模型**不打进包内**：首次需要语义检索时设 `PKB_EMBEDDING_AUTO_WARMUP=true` 让后台下载（缺失时检索仍可用，返回 `degraded=true`）；
+- 构建产物已加入 `.gitignore`（`backend/build/`、`backend/dist/`），不入库。
+
 ## 常用命令
 
 ```bash
