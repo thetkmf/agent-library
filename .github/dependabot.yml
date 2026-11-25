@@ -21,9 +21,8 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-      # 0.5.8 起要求 ESLint 9+，当前项目仍在 ESLint 8，待单独升级
+      # 0.5.x 起要求 ESLint 9+，当前项目仍在 ESLint 8，待单独升级
       - dependency-name: eslint-plugin-react-refresh
-        versions: [">=0.5.8"]
     groups:
       npm-minor:
         patterns: ["*"]
