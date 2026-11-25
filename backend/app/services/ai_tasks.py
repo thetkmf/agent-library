@@ -427,7 +427,11 @@ class AiTaskService:
         return True
 
     def _build_graph(self, task_id: str) -> dict[str, int]:
-        """Deterministic graph: item/tag nodes + tagged_with and accepted related_to edges."""
+        """Deterministic graph: item/tag nodes + tagged_with and accepted related_to edges.
+
+        分两步：先建立/更新全部节点并 flush（保证边引用的 FK 目标已落库），再写边，
+        否则 SQLite 外键会在首次建图时直接报 ``FOREIGN KEY constraint failed``。
+        """
         self._set_progress(task_id, 20)
         with self.session_factory() as session:
             item_rows = session.scalars(
@@ -441,10 +445,6 @@ class AiTaskService:
             existing_tags = {
                 node.label: node
                 for node in session.scalars(select(GraphNode).where(GraphNode.type == "tag")).all()
-            }
-            existing_edges = {
-                (edge.source_id, edge.target_id, edge.relation)
-                for edge in session.scalars(select(GraphEdge)).all()
             }
 
             def item_node(item: Item) -> GraphNode:
@@ -467,22 +467,31 @@ class AiTaskService:
                     existing_tags[name] = node
                 return node
 
+            pairs: list[tuple[GraphNode, GraphNode]] = []
             for item in item_rows:
                 source = item_node(item)
                 for tag in item.tags:
-                    target = tag_node(tag.name)
-                    key = (source.id, target.id, "tagged_with")
-                    if key not in existing_edges:
-                        session.add(
-                            GraphEdge(
-                                id=new_id(),
-                                source_id=source.id,
-                                target_id=target.id,
-                                relation="tagged_with",
-                                weight=1.0,
-                            )
-                        )
-                        existing_edges.add(key)
+                    pairs.append((source, tag_node(tag.name)))
+            session.flush()  # 节点必须先落库，边才可能通过外键校验
+
+            existing_edges = {
+                (edge.source_id, edge.target_id, edge.relation)
+                for edge in session.scalars(select(GraphEdge)).all()
+            }
+            for source, target in pairs:
+                key = (source.id, target.id, "tagged_with")
+                if key in existing_edges:
+                    continue
+                session.add(
+                    GraphEdge(
+                        id=new_id(),
+                        source_id=source.id,
+                        target_id=target.id,
+                        relation="tagged_with",
+                        weight=1.0,
+                    )
+                )
+                existing_edges.add(key)
             session.flush()
 
             accepted = session.scalars(
@@ -491,24 +500,28 @@ class AiTaskService:
                 )
             ).all()
             for suggestion in accepted:
-                target_id = str((suggestion.payload or {}).get("target_item_id") or "")
-                source_node = existing_items.get(suggestion.item_id)
-                target_node = existing_items.get(target_id)
-                if source_node is None or target_node is None:
+                payload = suggestion.payload or {}
+                target_id = str(payload.get("target_item_id") or "")
+                source_item = session.get(Item, suggestion.item_id)
+                target_item = session.get(Item, target_id)
+                if source_item is None or target_item is None:
                     continue
-                relation = str((suggestion.payload or {}).get("relation") or "related_to")
+                source_node = item_node(source_item)
+                target_node = item_node(target_item)
+                relation = str(payload.get("relation") or "related_to")
                 key = (source_node.id, target_node.id, relation)
-                if key not in existing_edges:
-                    session.add(
-                        GraphEdge(
-                            id=new_id(),
-                            source_id=source_node.id,
-                            target_id=target_node.id,
-                            relation=relation,
-                            weight=1.0,
-                        )
+                if key in existing_edges:
+                    continue
+                session.add(
+                    GraphEdge(
+                        id=new_id(),
+                        source_id=source_node.id,
+                        target_id=target_node.id,
+                        relation=relation,
+                        weight=0.6,
                     )
-                    existing_edges.add(key)
+                )
+                existing_edges.add(key)
             session.commit()
             nodes = int(session.scalar(select(func.count()).select_from(GraphNode)) or 0)
             edges = int(session.scalar(select(func.count()).select_from(GraphEdge)) or 0)

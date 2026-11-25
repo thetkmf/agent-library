@@ -48,3 +48,23 @@ def client(settings: Settings) -> Iterator[TestClient]:
 @pytest.fixture()
 def auth_headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(autouse=True)
+def _isolate_credentials(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """测试绝不读写真实 Windows 凭据库，避免受本机已保存的 Key 影响。"""
+    from app.services import credentials
+
+    store: dict[str, str] = {}
+
+    def _set(value: str) -> None:
+        if value.strip():
+            store["key"] = value.strip()
+        else:
+            store.pop("key", None)
+
+    monkeypatch.setattr(credentials, "get_api_key", lambda: store.get("key"))
+    monkeypatch.setattr(credentials, "has_api_key", lambda: bool(store.get("key")))
+    monkeypatch.setattr(credentials, "set_api_key", _set)
+    monkeypatch.setattr(credentials, "clear_api_key", lambda: store.pop("key", None))
+    yield

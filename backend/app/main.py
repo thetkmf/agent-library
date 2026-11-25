@@ -61,6 +61,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     vector_store = build_vector_store(settings) or MemoryVectorStore()
     app.state.vector_store = vector_store
     embedding_service = EmbeddingService(settings)
+    app.state.embedding_service = embedding_service
     if settings.embedding_auto_warmup:
         # 后台预热，不阻塞启动（默认关，避免离线/测试环境即发外联）
         threading.Thread(

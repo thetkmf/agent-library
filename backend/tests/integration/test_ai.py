@@ -320,3 +320,32 @@ def test_ai_endpoints_require_token(client: TestClient) -> None:
     assert client.post("/api/v1/ai/tasks", json={"type": "summarize"}).status_code == 401
     assert client.get("/api/v1/ai/suggestions").status_code == 401
     assert client.get("/api/v1/ai/profile").status_code == 401
+
+
+def test_graph_build_with_tags_is_idempotent(client: TestClient, auth: dict[str, str]) -> None:
+    """13.22 返修：带标签的条目首次建图曾经 FOREIGN KEY constraint failed。"""
+    install_ai(client)
+    create_note(client, auth, "向量检索", "嵌入检索。")
+    tagged = client.post(
+        "/api/v1/items",
+        json={"type": "note", "title": "机器学习", "content": "基础。", "tags": ["ML", "检索"]},
+        headers=auth,
+    )
+    assert tagged.status_code == 201
+
+    first = client.post("/api/v1/ai/tasks", json={"type": "graph_build"}, headers=auth).json()[
+        "data"
+    ]
+    assert first["status"] == "succeeded", first
+    assert first["result"]["nodes"] == 4  # 2 个条目 + 2 个标签
+    assert first["result"]["edges"] == 2  # 两个 tagged_with
+
+    second = client.post("/api/v1/ai/tasks", json={"type": "graph_build"}, headers=auth).json()[
+        "data"
+    ]
+    assert second["status"] == "succeeded", second
+    assert second["result"] == first["result"]
+
+    stats = client.get("/api/v1/graph/stats", headers=auth).json()["data"]
+    assert stats["node_count"] == 4
+    assert stats["edge_count"] == 2

@@ -69,8 +69,12 @@ def system_capabilities(settings: SettingsDep, request: Request) -> dict[str, An
             indexed_count = store.count()
         except Exception:  # pragma: no cover - 向量库异常不应拖垮能力接口
             indexed_count = 0
+    embedder = getattr(request.app.state, "embedding_service", None)
     return envelope(
         system_service.capabilities(
-            settings, vector_ready=store is not None, indexed_count=indexed_count
+            settings,
+            vector_ready=store is not None,
+            indexed_count=indexed_count,
+            embedder=embedder,
         )
     )
