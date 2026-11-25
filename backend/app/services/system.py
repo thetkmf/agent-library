@@ -34,21 +34,24 @@ def describe_service(settings: Settings) -> dict[str, Any]:
 
 
 def has_model_key() -> bool:
-    """Report whether a DeepSeek key is stored in the Windows credential manager.
+    """Report whether a DeepSeek key is stored (credential manager or runtime env)."""
+    from . import credentials
 
-    Reading the credential manager is part of B12; until then no key is configured.
-    """
-    return False
+    return credentials.has_api_key()
 
 
 def capabilities(
-    settings: Settings, *, vector_ready: bool = False, indexed_count: int = 0
+    settings: Settings,
+    *,
+    vector_ready: bool = False,
+    indexed_count: int = 0,
+    embedder: EmbeddingService | None = None,
 ) -> dict[str, Any]:
     """Build the /system/capabilities payload."""
     layout = build_layout(settings)
     usage = shutil.disk_usage(str(_existing_ancestor(layout.data_dir)))
     has_key = has_model_key()
-    embedding = EmbeddingService(settings).describe()
+    embedding = (embedder or EmbeddingService(settings)).describe()
     return {
         "ai": {
             "provider": MODEL_PROVIDER,

@@ -43,7 +43,12 @@ def test_valid_token_returns_success_envelope(
     assert body["data"]["api_version"] == "v1"
 
 
-def test_capabilities_payload(client: TestClient, auth_headers: dict[str, str]) -> None:
+def test_capabilities_payload(
+    client: TestClient, auth_headers: dict[str, str], monkeypatch
+) -> None:
+    from app.services import credentials
+
+    monkeypatch.setattr(credentials, "has_api_key", lambda: False)
     body = client.get("/api/v1/system/capabilities", headers=auth_headers).json()
     data = body["data"]
     assert data["ai"]["provider"] == "deepseek"
@@ -70,3 +75,21 @@ def test_missing_token_not_configured(tmp_path) -> None:
         response = client.get("/api/v1/system/info", headers={"Authorization": "Bearer any-token"})
     assert response.status_code == 503
     assert response.json()["code"] == 10002
+
+
+def test_capabilities_reflect_stored_key(
+    client: TestClient, auth_headers: dict[str, str], monkeypatch
+) -> None:
+    """13.22 返修：has_key / ready 必须跟随真实凭据与外联开关。"""
+    from app.services import credentials
+
+    monkeypatch.setattr(credentials, "has_api_key", lambda: True)
+    enabled = client.get("/api/v1/system/capabilities", headers=auth_headers).json()["data"]
+    assert enabled["ai"]["has_key"] is True
+    assert enabled["ai"]["ready"] is False  # 外联开关仍关闭
+
+    client.patch(
+        "/api/v1/settings", json={"privacy": {"allow_external_calls": True}}, headers=auth_headers
+    )
+    ready = client.get("/api/v1/system/capabilities", headers=auth_headers).json()["data"]
+    assert ready["ai"]["ready"] is True
